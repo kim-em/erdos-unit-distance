@@ -1,2 +1,0 @@
-q3_poly_bound
-p1_poly_bound

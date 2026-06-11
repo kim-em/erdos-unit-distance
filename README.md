@@ -61,6 +61,16 @@ import ErdosUnitDistance
 - `informal-proof.md` — a faithful transcription of the informal proof.
 - `formalization.yaml` — provenance and resource-usage metadata.
 
+## Independent verification
+
+[kim-em/erdos-unit-distance-comparator](https://github.com/kim-em/erdos-unit-distance-comparator)
+checks this library with
+[leanprover/comparator](https://github.com/leanprover/comparator): a
+Mathlib-only `Challenge.lean` states the theorem, and comparator
+certifies — without trusting any proof code here — that the library
+proves exactly that statement from the standard axioms, replaying the
+proof through the Lean kernel.
+
 ## Proof structure
 
 1. **Geometric core** — grid-pigeonhole packing and doubling bounds for

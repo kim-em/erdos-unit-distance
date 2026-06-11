@@ -2400,6 +2400,7 @@ noncomputable def primesOverP1 (g i : ℕ) : Finset (Ideal (𝓞 (Kf g))) :=
     (p_prime_facts (p1_spec i).1 (p1_spec i).2).2.2.2.1
   IsDedekindDomain.primesOverFinset (Ideal.span {((p1 i : ℤ))}) (𝓞 (Kf g))
 
+open scoped Pointwise in
 /-- [decomp 1] The common inertia degree of a rational prime `p ≡ 1 mod 4` in
 `K_g` is at most `2`: the decomposition group (= stabilizer) has trivial
 inertia (`Kf_inertia_eq_bot`), is cyclic modulo inertia (isomorphic to the
@@ -2408,7 +2409,64 @@ or `Ideal.card_stabilizer_eq_card_inertia_mul_finrank`), and has exponent two
 (`Kf_aut_sq`), hence order at most `2`. -/
 theorem Kf_inertiaDegIn_le_two (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p % 4 = 1) :
     Ideal.inertiaDegIn (Ideal.span {(p : ℤ)}) (𝓞 (Kf g)) ≤ 2 := by
-  sorry
+  classical
+  haveI : Fact p.Prime := ⟨hp⟩
+  haveI : IsGalois ℚ (Kf g) := Kf_isGalois g
+  obtain ⟨hpz, hp0, hpprime, hpmax, hp4dvd⟩ := p_prime_facts hp hp4
+  haveI : (Ideal.span {(p : ℤ)}).IsMaximal := hpmax
+  obtain ⟨⟨P, hPprime, hPlies⟩⟩ :=
+    (inferInstance : Nonempty (Ideal.primesOver (Ideal.span {(p : ℤ)}) (𝓞 (Kf g))))
+  haveI := hPprime
+  haveI := hPlies
+  have hPne : P ≠ ⊥ := Ideal.ne_bot_of_liesOver_of_ne_bot hp0 P
+  haveI : P.IsMaximal := hPprime.isMaximal hPne
+  haveI : Finite (ℤ ⧸ Ideal.span {(p : ℤ)}) :=
+    Finite.of_equiv _ (Int.quotientSpanEquivZMod (p : ℤ)).symm.toEquiv
+  haveI : Finite (𝓞 (Kf g) ⧸ P) := inferInstance
+  letI : Field (ℤ ⧸ Ideal.span {(p : ℤ)}) := Ideal.Quotient.field _
+  letI : Field (𝓞 (Kf g) ⧸ P) := Ideal.Quotient.field _
+  haveI : Module.Finite (ℤ ⧸ Ideal.span {(p : ℤ)}) (𝓞 (Kf g) ⧸ P) := Module.Finite.of_finite
+  haveI : Algebra.IsAlgebraic (ℤ ⧸ Ideal.span {(p : ℤ)}) (𝓞 (Kf g) ⧸ P) :=
+    Algebra.IsAlgebraic.of_finite _ _
+  haveI : PerfectField (ℤ ⧸ Ideal.span {(p : ℤ)}) := PerfectField.ofFinite
+  haveI : Algebra.IsSeparable (ℤ ⧸ Ideal.span {(p : ℤ)}) (𝓞 (Kf g) ⧸ P) := inferInstance
+  -- the decomposition group has cardinality e·f = f
+  have hcard := Ideal.card_stabilizer_eq (G := Kf g ≃ₐ[ℚ] Kf g) (Ideal.span {(p : ℤ)}) hp0 P
+  rw [Kf_ramificationIdxIn_eq_one g p hp hp4, one_mul] at hcard
+  rw [← hcard]
+  -- the stabilizer is isomorphic to the (cyclic) residue Galois group
+  have hquot := Ideal.Quotient.stabilizerQuotientInertiaEquiv
+    (G := Kf g ≃ₐ[ℚ] Kf g) (Ideal.span {(p : ℤ)}) P
+  have hinbot : Ideal.inertia (Kf g ≃ₐ[ℚ] Kf g) P = ⊥ := Kf_inertia_eq_bot g p hp hp4 P
+  have hcard2 : Nat.card (MulAction.stabilizer (Kf g ≃ₐ[ℚ] Kf g) P)
+      = Nat.card ((𝓞 (Kf g) ⧸ P) ≃ₐ[ℤ ⧸ Ideal.span {(p : ℤ)}] (𝓞 (Kf g) ⧸ P)) := by
+    have h1 : Nat.card ((Ideal.inertia (Kf g ≃ₐ[ℚ] Kf g) P).subgroupOf
+        (MulAction.stabilizer (Kf g ≃ₐ[ℚ] Kf g) P)) = 1 := by
+      rw [hinbot, Subgroup.bot_subgroupOf]
+      exact Subgroup.card_bot
+    rw [Subgroup.card_eq_card_quotient_mul_card_subgroup
+      (s := (Ideal.inertia (Kf g ≃ₐ[ℚ] Kf g) P).subgroupOf
+        (MulAction.stabilizer (Kf g ≃ₐ[ℚ] Kf g) P)), h1, mul_one]
+    exact Nat.card_congr hquot.toEquiv
+  rw [hcard2]
+  -- the residue Galois group is cyclic with exponent two
+  have hexp : ∀ x : ((𝓞 (Kf g) ⧸ P) ≃ₐ[ℤ ⧸ Ideal.span {(p : ℤ)}] (𝓞 (Kf g) ⧸ P)),
+      x ^ 2 = 1 := by
+    intro x
+    obtain ⟨y, rfl⟩ := hquot.surjective x
+    obtain ⟨σ, rfl⟩ := QuotientGroup.mk_surjective y
+    have hσ : σ ^ 2 = 1 := by
+      apply Subtype.ext
+      simp only [SubgroupClass.coe_pow, OneMemClass.coe_one]
+      exact Kf_aut_sq g (σ : Kf g ≃ₐ[ℚ] Kf g)
+    rw [← map_pow, ← QuotientGroup.mk_pow, hσ]
+    exact map_one hquot
+  have hcyc : IsCyclic ((𝓞 (Kf g) ⧸ P) ≃ₐ[ℤ ⧸ Ideal.span {(p : ℤ)}] (𝓞 (Kf g) ⧸ P)) :=
+    inferInstance
+  have hdvd : Nat.card ((𝓞 (Kf g) ⧸ P) ≃ₐ[ℤ ⧸ Ideal.span {(p : ℤ)}] (𝓞 (Kf g) ⧸ P)) ∣ 2 := by
+    rw [← IsCyclic.exponent_eq_card]
+    exact Monoid.exponent_dvd_of_forall_pow_eq_one hexp
+  exact Nat.le_of_dvd (by norm_num) hdvd
 
 /-- [decomp 2] At least `2^g` primes of `K_g` lie over each rational prime
 `p ≡ 1 mod 4`: by the fundamental identity

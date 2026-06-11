@@ -19,7 +19,7 @@ result:
 
 artifacts:
   end_to_end: https://github.com/kim-em/erdos-unit-distance (pnt-bounds/)
-  mathlib_development: https://github.com/leanprover-community/mathlib4/tree/kim/erdos-unit-distance/ErdosUnitDistance
+  mathlib_development: https://github.com/kim-em/erdos-unit-distance (ErdosUnitDistance/, root Lake project on Mathlib master)
   verification: |
     cd pnt-bounds && lake build PntBounds
     # then: import PntBounds.Framework

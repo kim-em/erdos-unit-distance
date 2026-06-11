@@ -40,11 +40,14 @@ formalized here.)
   and `#print axioms Erdos.erdos_unit_distance_uniform_constant_false`
   after `import PntBounds.Framework`.
 
-- The **Mathlib-only development** lives on the mathlib4 branch
-  [`kim/erdos-unit-distance`](https://github.com/leanprover-community/mathlib4/tree/kim/erdos-unit-distance/ErdosUnitDistance)
-  (`ErdosUnitDistance/Framework.lean`, against Mathlib master).  It is
-  identical except that the two prime-growth lemmas remain `sorry`ed
-  there, since Mathlib cannot depend on PrimeNumberTheoremAnd.
+- `ErdosUnitDistance/Framework.lean` — the **main development**, a Lake
+  project at the repository root requiring **Mathlib master**.  Identical
+  to the end-to-end artifact except that the two prime-growth lemmas
+  remain `sorry`ed here (they need PrimeNumberTheoremAnd, whose Mathlib
+  pin lags master).  Verify with:
+  ```
+  lake exe cache get && lake build
+  ```
 
 - `informal-proof.md` — a faithful transcription of the informal proof.
 - `scratch/` — intermediate developments (square-class descent, the

@@ -2445,7 +2445,116 @@ theorem Kf_conj_primesOver_ne (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p % 4 = 
     (P : Ideal (𝓞 (Kf g)))
     (hP : P ∈ Ideal.primesOver (Ideal.span {(p : ℤ)}) (𝓞 (Kf g))) :
     Ideal.map (ringOfIntegersComplexConj (Kf g)) P ≠ P := by
-  sorry
+  intro hEq
+  obtain ⟨hPprime, hPlies⟩ := hP
+  haveI : Fact p.Prime := ⟨hp⟩
+  -- the imaginary unit as an algebraic integer of `K_g`
+  have hImem : Complex.I ∈ Kf g :=
+    IntermediateField.subset_adjoin ℚ _ (Set.mem_insert _ _)
+  have hiK2 : (⟨Complex.I, hImem⟩ : Kf g) ^ 2 = -1 := by
+    ext
+    push_cast
+    exact Complex.I_sq
+  have hint : IsIntegral ℤ (⟨Complex.I, hImem⟩ : Kf g) := by
+    refine ⟨Polynomial.X ^ 2 + Polynomial.C 1,
+      Polynomial.monic_X_pow_add_C 1 two_ne_zero, ?_⟩
+    simp [hiK2]
+  set iO : 𝓞 (Kf g) := ⟨_, hint⟩ with hiOdef
+  have hiO2 : iO ^ 2 = -1 := by
+    have hK : (iO : Kf g) ^ 2 = -1 := hiK2
+    exact_mod_cast hK
+  -- conjugation negates the imaginary unit
+  have hconjK : NumberField.IsCMField.complexConj (Kf g) (⟨Complex.I, hImem⟩ : Kf g)
+      = -(⟨Complex.I, hImem⟩ : Kf g) := by
+    have h1 := NumberField.IsCMField.complexEmbedding_complexConj
+      (K := Kf g) ((Kf g).val.toRingHom) (⟨Complex.I, hImem⟩ : Kf g)
+    apply Subtype.ext
+    rw [show ((-(⟨Complex.I, hImem⟩ : Kf g) : Kf g) : ℂ) = -Complex.I from rfl,
+      ← Complex.conj_I]
+    exact h1
+  have hconj_iO : ringOfIntegersComplexConj (Kf g) iO = -iO := by
+    have hcoe : ((ringOfIntegersComplexConj (Kf g) iO : 𝓞 (Kf g)) : Kf g)
+        = ((-iO : 𝓞 (Kf g)) : Kf g) := by
+      rw [NumberField.IsCMField.coe_ringOfIntegersComplexConj]
+      push_cast
+      exact_mod_cast hconjK
+    exact_mod_cast hcoe
+  -- an integer square root of -1 mod p
+  obtain ⟨y, hy'⟩ : IsSquare (-1 : ZMod p) :=
+    (ZMod.exists_sq_eq_neg_one_iff).mpr (by omega)
+  have hy : y ^ 2 = -1 := by rw [pow_two]; exact hy'.symm
+  set a : ℤ := (y.val : ℤ) with hadef
+  have hpa : (p : ℤ) ∣ a ^ 2 + 1 := by
+    have hz : ((a ^ 2 + 1 : ℤ) : ZMod p) = 0 := by
+      push_cast
+      rw [show ((y.val : ℤ) : ZMod p) = y by push_cast; simp]
+      rw [hy]
+      ring
+    exact_mod_cast (ZMod.intCast_zmod_eq_zero_iff_dvd _ _).mp hz
+  -- p, hence a² + 1, lies in P
+  have hpP : algebraMap ℤ (𝓞 (Kf g)) (p : ℤ) ∈ P := by
+    have hmem : ((p : ℤ)) ∈ P.under ℤ := by
+      rw [← hPlies.over]
+      exact Ideal.mem_span_singleton_self _
+    exact hmem
+  have haP : algebraMap ℤ (𝓞 (Kf g)) (a ^ 2 + 1) ∈ P := by
+    obtain ⟨k, hk⟩ := hpa
+    rw [hk, map_mul]
+    exact Ideal.mul_mem_right _ _ hpP
+  -- the prime P contains iO - a or iO + a
+  have hsplit : (iO - algebraMap ℤ _ a) * (iO + algebraMap ℤ _ a) ∈ P := by
+    have hfactor : (iO - algebraMap ℤ (𝓞 (Kf g)) a) * (iO + algebraMap ℤ (𝓞 (Kf g)) a)
+        = -(algebraMap ℤ (𝓞 (Kf g)) (a ^ 2 + 1)) := by
+      have hcast : algebraMap ℤ (𝓞 (Kf g)) (a ^ 2 + 1)
+          = (algebraMap ℤ (𝓞 (Kf g)) a) ^ 2 + 1 := by
+        push_cast [map_add, map_pow, map_one]
+        ring
+      rw [hcast]
+      linear_combination hiO2
+    rw [hfactor]
+    exact neg_mem haP
+  -- conjugation-stable membership
+  have hconjmem : ∀ x ∈ P, ringOfIntegersComplexConj (Kf g) x ∈ P := by
+    intro x hx
+    rw [← hEq]
+    exact Ideal.mem_map_of_mem _ hx
+  have hconj_int : ∀ n : ℤ, ringOfIntegersComplexConj (Kf g) (algebraMap ℤ _ n)
+      = algebraMap ℤ (𝓞 (Kf g)) n := fun n => by
+    simp [algebraMap_int_eq, map_intCast]
+  -- in either case, 2·iO ∈ P
+  have h2iO : (2 : 𝓞 (Kf g)) * iO ∈ P := by
+    rcases hPprime.mem_or_mem hsplit with hc | hc
+    · have hcc := hconjmem _ hc
+      rw [map_sub, hconj_iO, hconj_int] at hcc
+      have := sub_mem hc hcc
+      have heq2 : (iO - algebraMap ℤ (𝓞 (Kf g)) a) - (-iO - algebraMap ℤ (𝓞 (Kf g)) a)
+          = 2 * iO := by ring
+      rwa [heq2] at this
+    · have hcc := hconjmem _ hc
+      rw [map_add, hconj_iO, hconj_int] at hcc
+      have := sub_mem hc hcc
+      have heq2 : (iO + algebraMap ℤ (𝓞 (Kf g)) a) - (-iO + algebraMap ℤ (𝓞 (Kf g)) a)
+          = 2 * iO := by ring
+      rwa [heq2] at this
+  -- hence 4 ∈ P, so p ∣ 4: contradiction with p ≡ 1 mod 4
+  have h4 : algebraMap ℤ (𝓞 (Kf g)) 4 ∈ P := by
+    have hprod : ((2 : 𝓞 (Kf g)) * iO) * ((2 : 𝓞 (Kf g)) * iO) ∈ P :=
+      Ideal.mul_mem_left _ _ h2iO
+    have heq4 : ((2 : 𝓞 (Kf g)) * iO) * ((2 : 𝓞 (Kf g)) * iO)
+        = -(algebraMap ℤ (𝓞 (Kf g)) 4) := by
+      have h4c : algebraMap ℤ (𝓞 (Kf g)) 4 = 4 := by norm_num [algebraMap_int_eq]
+      rw [h4c]
+      linear_combination 4 * hiO2
+    rw [heq4] at hprod
+    simpa using neg_mem hprod
+  have hdvd : (p : ℤ) ∣ 4 := by
+    have hmem : (4 : ℤ) ∈ P.under ℤ := h4
+    rw [← hPlies.over] at hmem
+    exact Ideal.mem_span_singleton.mp hmem
+  have hdvd' : p ∣ 4 := by exact_mod_cast hdvd
+  have hp2 : p ∣ 2 := hp.dvd_of_dvd_pow (n := 2) (by simpa using hdvd')
+  have hpe : p = 2 := (Nat.prime_dvd_prime_iff_eq hp Nat.prime_two).mp hp2
+  omega
 
 /-- [decomp 4] `(m t)` is the squarefree product of all primes of `K_g`
 lying over the `p1 i`, `i < t`: each `(p1 i)` factors as

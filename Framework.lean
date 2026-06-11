@@ -512,12 +512,13 @@ parameters `g, t` satisfy the construction estimates below.  If moreover
 compared to `C log t`, then `ν` beats `n^(1 + C/log log n)`.
 
 The precise sufficient conditions encoded here:
-with `d = 2^g`, `E = 2^(t·d/2) / (h·2^d)`,
-* `log (ν / n) ≥ (t·d/2)·log 2 - log h - d·log 2 - log 2 - d·log 64`,
-* `log n ≤ 2d·(log 32 + log (m t) / 2)`,
-* `n ≥ E ≥ 16`,
-and the hypotheses force `log(ν/n) ≥ (t·d/4)·log 2` and
-`C·log n / log log n < (t·d/4)·log 2`.
+with `d = 2^g`,
+* `hpairs` forces `log (ν/n) ≥ (t·d/2)·log 2 - log h - d·log 2 - log 2 - d·log 64`,
+  which is `≥ (t·d/4)·log 2` by `hth` (note `hth` gives `log h ≤ d·(t/8 - 8)`);
+* `hlower` plus `hth` force `log n ≥ 0.2·t·d`, hence
+  `log log n ≥ log d = g·log 2` (using `ht5`);
+* `hMn` bounds `log n ≤ d·(log M + 7)`, so by `hgC`
+  `C·log n / log log n ≤ C·d·(log M + 7)/(g·log 2) ≤ (t·d/40)·log 2 < (t·d/4)·log 2`.
 
 Stated as a closed implication between real inequalities so that it can be
 attacked independently of all geometry and number theory. -/
@@ -529,9 +530,9 @@ theorem key_inequality
     (hupper : n ≤ (32 * Real.sqrt M) ^ (2 * 2 ^ g))
     (hpairs : (2 : ℝ) ^ (t * 2 ^ (g - 1)) * n ≤ h * 2 ^ 2 ^ g * (2 * 64 ^ 2 ^ g) * ν)
     -- size conditions on the parameters:
-    (hg1 : 1 ≤ g)
-    (hth : (8 : ℝ) * (Real.log h / 2 ^ g + 8 * 2 ^ g) ≤ t)
-    (hgC : 40 * C * Real.log M / (2 ^ g : ℝ) + 40 * C ≤ (g : ℝ) * Real.log 2 ^ 2 / Real.log M)
+    (hg1 : 1 ≤ g) (ht5 : 5 ≤ t)
+    (hth : (8 : ℝ) * (Real.log h / 2 ^ g + 8) ≤ t)
+    (hgC : 40 * C * (Real.log M + 8) ≤ (t : ℝ) * g * Real.log 2 ^ 2)
     -- log M stands in for log (m t) ≤ c₁ t log t; the caller arranges sizes
     (hMn : Real.log n ≤ 2 * 2 ^ g * (Real.log 32 + Real.log M / 2)) :
     n ^ (1 + C / Real.log (Real.log n)) < ν := by
@@ -544,12 +545,14 @@ exist `n ≥ N` and an `n`-point set `P ⊆ ℝ²` with more than
 
 [medium given everything above; glue + parameter choice]
 Sketch: given `C` and `N`, let `c₀, c₁` be the constants of
-`log_classNumber_Kf_le` and `log_m_le`.  Choose `t` large (depending on
-`C, N, c₀, c₁`) and `g = ⌈c₄·(C+1)·log t⌉` with `c₄ = 40/(log 2)²`-ish;
-verify the size conditions of `key_inequality` with `M = m t`,
-`h = classNumber (Kf g)`, and the estimates from `exists_good_pointset`;
-`n ≥ N` and `n ≥ 16` follow from the first estimate since
-`n ≥ 2^(t·2^(g-1)) / (h·2^(2^g)) → ∞` as `t → ∞` for the chosen `g(t)`. -/
+`log_classNumber_Kf_le` and `log_m_le`.  Choose
+`g = ⌈41·C·c₁·log (t+2) / (log 2)²⌉ + 1` and `t` large (depending on
+`C, N, c₀, c₁`): then `hgC` holds since `log (m t) + 8 ≤ c₁·(t+8)·log (t+2)`,
+and `hth` holds since `log h / 2^g ≤ c₀·(g+1)·log (g+2)` grows only like
+`(log t)·(log log t)`.  Use `M = m t`, `h = classNumber (Kf g)`, and the
+estimates from `exists_good_pointset`; `n ≥ N` and `n ≥ 16` follow from
+the first estimate since `n ≥ 2^(t·2^(g-1)) / (h·2^(2^g)) → ∞` as
+`t → ∞` for the chosen `g(t)`. -/
 theorem erdos_unit_distance_uniform_constant_false :
     ∀ C : ℝ, 0 < C → ∀ N : ℕ,
       ∃ (n : ℕ) (P : Finset (EuclideanSpace ℝ (Fin 2))),

@@ -14,3 +14,12 @@ e2d59aa2-188d-41f0-9ca9-9eef747f8036	card_ideal_absNorm_le
 db6fd77f-24ae-49d1-85f8-7c87888497c7	two_mul_unitDist
 43eb2c20-aea3-4f3d-ab5e-c065ecf64265	ncard_box_two_le_doubling
 c7ab5b1d-b204-4af3-bf98-fcbc0afda5c9	le_unitPairsC_of_translates
+29d6b0b7-77ce-4d3f-acae-7906c8920394	lattice_inter_box_finite_card
+cdaa5407-8631-4c26-b278-18d91627359d	units_sq_index_le
+3fcad1cb-d08c-47de-b1ef-80b3c9d2b7bc	Kf_finiteDimensional
+1ed5bf53-d097-4a26-8c40-c74fbce78fff	Kf_isTotallyComplex
+15dd0a3a-464e-4e31-8f73-a70cfb69776d	Kf_finrank
+598e57f9-eae8-4c82-91a2-95a2883b1bf3	Kf_isAbelianGalois
+19156a6f-aa86-4380-b2e7-b9c6aaf91638	Kf_discr_le
+c67df2c2-e7c2-44a3-affe-845b72b9fac2	log_m_le
+92a96281-3b1d-4980-8e35-9831946fbef7	log_classNumber_Kf_le

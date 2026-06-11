@@ -1,0 +1,117 @@
+# Provenance metadata for the formalization of Alpöge's disproof of the
+# uniform-constant Erdős unit-distance conjecture.
+
+result:
+  name: erdos_unit_distance_uniform_constant_false
+  statement: >
+    For every C > 0 and every N there exist n ≥ N and an n-point set
+    P ⊆ ℝ² whose number of unit-distance pairs exceeds
+    n^(1 + C / log log n).  (Literal negation of Erdős's 1946 conjectured
+    bound ν(n) ≤ n^(1 + C/log log n) for an absolute constant C.)
+  axioms: [propext, Classical.choice, Quot.sound]
+  sorries: 0
+  lean_toolchain: leanprover/lean4:v4.30.0   # end-to-end artifact (pnt-bounds/)
+  mathlib_branch_toolchain: leanprover/lean4:v4.31.0-rc2  # Mathlib-master development
+  note: >
+    Strictly weaker than the lean-eval problem
+    erdos_unit_distance_conjecture_false (fixed power gain n^(1+δ),
+    OpenAI 2026 via class field towers), which remains open in Lean.
+
+artifacts:
+  end_to_end: https://github.com/kim-em/erdos-unit-distance (pnt-bounds/)
+  mathlib_development: https://github.com/leanprover-community/mathlib4/tree/kim/erdos-unit-distance/ErdosUnitDistance
+  verification: |
+    cd pnt-bounds && lake build PntBounds
+    # then: import PntBounds.Framework
+    #       #print axioms Erdos.erdos_unit_distance_uniform_constant_false
+
+dates:
+  formalized: 2026-06-11
+  wall_clock: about 9.5 hours, single orchestrating session
+
+sources:
+  - kind: informal_proof
+    author: Levent Alpöge
+    title: Integral points on norm-one tori and the Erdős unit-distance exponent
+    year: 2026
+    url: https://x.com/__alpoge__/status/2064409100562366543
+    note: one-page proof; transcribed in informal-proof.md
+  - kind: pointer
+    author: Junyan Xu
+    url: https://leanprover.zulipchat.com/#narrow/channel/219941-Machine-Learning-for-Theorem-Proving/topic/Logical.20Intelligence.20partial.20proof.20of.20unit.20distance.20result/near/601574339
+    note: Zulip message suggesting the proof "might be within reach of Aristotle"
+  - kind: original_conjecture
+    author: Paul Erdős
+    title: On sets of distances of n points
+    journal: Amer. Math. Monthly 53 (1946), 248-250
+  - kind: context
+    author: OpenAI
+    title: Planar Point Sets with Many Unit Distances
+    year: 2026
+    url: https://cdn.openai.com/pdf/74c24085-19b0-4534-9c90-465b8e29ad73/unit-distance-proof.pdf
+    note: the stronger fixed-power-gain refutation (not used here)
+  - kind: dependency
+    title: PrimeNumberTheoremAnd
+    url: https://github.com/AlexKontorovich/PrimeNumberTheoremAnd
+    note: chebyshev_asymptotic_pnt (PNT in arithmetic progressions), sorry-free
+  - kind: dependency
+    title: Mathlib
+    url: https://github.com/leanprover-community/mathlib4
+    note: >
+      especially NumberField.IsCMField (X. Roblot), RamificationInertia
+      (incl. the Galois fundamental identity), Dedekind-domain ideal theory,
+      and Dirichlet's theorem on primes in AP
+
+orchestration:
+  director:
+    tool: Claude Code (Anthropic)
+    model: claude-fable-5[1m]
+    role: >
+      statement design and verification of all 27 intermediate lemmas;
+      per-sorry project generation and result integration; all
+      v4.28→master ports; hand proofs (m_ge, Kf_card_primesOver_ge,
+      Kf_conj_primesOver_ne, Kf_inertiaDegIn_le_two, span_p1_eq_prod,
+      Kf_span_m_eq_prod, the exists_ideal_family assembly, CountGlue);
+      review fixes after the Codex audit of key_inequality.
+    usage_this_session:
+      api_calls: 886
+      output_tokens: 1255224
+      fresh_input_tokens: 130807
+      cache_read_tokens: 360210524
+      cache_write_tokens: 5902626
+  provers:
+    - tool: Aristotle (Harmonic), CLI v2, target Lean v4.28.0
+      tasks_submitted: 31     # 1 all-in-one, 24 per-sorry, 5 decomposition, 1 follow-up
+      tasks_cancelled: 7      # superseded by hand proofs
+      lemmas_proved: 22
+      highlights: >
+        key_inequality; the grid-pigeonhole geometric core;
+        exists_good_pointset; classNumber_le_bound; the Rankin-style ideal
+        count card_ideal_absNorm_le (via an injective encoding into
+        bounded-product tuples, no Euler products); Kf_discr_le (diagonal
+        trace form on subset products); arithmetic_construction (the full
+        CM pigeonhole assembly); unramifiedness of p ≡ 1 mod 4 and the
+        transversal counting lemma (infrastructure for the final lemma).
+      usage: token counts not exposed by the service; typical task wall
+        time minutes to hours
+    - tool: Codex CLI (OpenAI)
+      model: gpt-5.5
+      sessions: 7
+      lemmas_proved: >
+        count_mod_four_ge (closing the analytic input);
+        the square-class descent kernel (mem_sup_adjoin_sq,
+        squareClass_of_sqrt_mem); the multiquadratic-degree bridge
+        (q3_not_squareClass, sqrtTower_finrank, Kf_finrank);
+        plus the statement-level audit that caught two bugs in
+        key_inequality before any prover time was spent
+      usage_measured_across_matching_rollouts:
+        input_tokens: 35035142
+        cached_input_tokens: 33289984
+        output_tokens: 132278
+
+attribution_note: >
+  Per-lemma attribution is in the git history of both repositories
+  (each integration commit names the prover).  All statements were
+  designed and all results verified/ported/audited by the directing
+  session; failures and partial results are recorded honestly in the
+  commit history.

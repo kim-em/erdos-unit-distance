@@ -11,7 +11,7 @@ result:
   axioms: [propext, Classical.choice, Quot.sound]
   sorries: 0
   lean_toolchain: leanprover/lean4:v4.30.0   # end-to-end artifact (pnt-bounds/)
-  mathlib_branch_toolchain: leanprover/lean4:v4.31.0-rc2  # Mathlib-master development
+  main_toolchain: leanprover/lean4:v4.31.0-rc2          # root project, Mathlib master
   note: >
     Strictly weaker than the lean-eval problem
     erdos_unit_distance_conjecture_false (fixed power gain n^(1+δ),

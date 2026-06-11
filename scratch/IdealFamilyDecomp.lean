@@ -2618,10 +2618,60 @@ theorem Kf_conj_primesOver_ne (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p % 4 = 
 lying over the `p1 i`, `i < t`: each `(p1 i)` factors as
 `∏_{P ∈ primesOverP1 g i} P` with all exponents one
 (`Kf_ramificationIdxIn_eq_one`), and `m t = ∏_{i<t} p1 i`. -/
+theorem span_p1_eq_prod (g i : ℕ) :
+    Ideal.span {((p1 i : ℕ) : 𝓞 (Kf g))} = ∏ P ∈ primesOverP1 g i, P := by
+  classical
+  haveI : Fact (p1 i).Prime := ⟨(p1_spec i).1⟩
+  haveI : IsGalois ℚ (Kf g) := Kf_isGalois g
+  obtain ⟨hpz, hp0, hpprime, hpmax, hp4dvd⟩ :=
+    p_prime_facts (p1_spec i).1 (p1_spec i).2
+  haveI : (Ideal.span {((p1 i : ℤ))}).IsMaximal := hpmax
+  set I : Ideal (𝓞 (Kf g)) :=
+    Ideal.map (algebraMap ℤ (𝓞 (Kf g))) (Ideal.span {(p1 i : ℤ)}) with hI
+  have hIspan : I = Ideal.span {((p1 i : ℕ) : 𝓞 (Kf g))} := by
+    rw [hI, Ideal.map_span, Set.image_singleton]
+    norm_num [algebraMap_int_eq]
+  have hIne : I ≠ ⊥ := by
+    rw [hIspan, Ne, Ideal.span_singleton_eq_bot]
+    exact_mod_cast (p1_spec i).1.ne_zero
+  have hmemiff : ∀ {P : Ideal (𝓞 (Kf g))},
+      P ∈ primesOverP1 g i ↔ P ∈ Ideal.primesOver (Ideal.span {(p1 i : ℤ)}) (𝓞 (Kf g)) :=
+    fun {P} => IsDedekindDomain.mem_primesOverFinset_iff hp0 (𝓞 (Kf g))
+  have hcount : ∀ P ∈ primesOverP1 g i, (UniqueFactorizationMonoid.normalizedFactors I).count P = 1 := by
+    intro P hP
+    obtain ⟨hPp, hPlies⟩ := hmemiff.mp hP
+    haveI := hPp
+    haveI := hPlies
+    have hPne : P ≠ ⊥ := Ideal.ne_bot_of_liesOver_of_ne_bot hp0 P
+    rw [← Ideal.IsDedekindDomain.ramificationIdx_eq_normalizedFactors_count hIne hPp hPne]
+    rw [← Ideal.ramificationIdxIn_eq_ramificationIdx (Ideal.span {(p1 i : ℤ)}) P
+      (Kf g ≃ₐ[ℚ] Kf g)]
+    exact Kf_ramificationIdxIn_eq_one g (p1 i) (p1_spec i).1 (p1_spec i).2
+  have htofin : (UniqueFactorizationMonoid.normalizedFactors I).toFinset = primesOverP1 g i := by
+    rw [show primesOverP1 g i
+        = IsDedekindDomain.primesOverFinset (Ideal.span {(p1 i : ℤ)}) (𝓞 (Kf g)) from rfl]
+    rw [IsDedekindDomain.primesOverFinset, UniqueFactorizationMonoid.factors_eq_normalizedFactors]
+  have hnodup : (UniqueFactorizationMonoid.normalizedFactors I).Nodup := by
+    rw [Multiset.nodup_iff_count_le_one]
+    intro P
+    by_cases hP : P ∈ UniqueFactorizationMonoid.normalizedFactors I
+    · exact le_of_eq (hcount P (htofin ▸ Multiset.mem_toFinset.mpr hP))
+    · simp [Multiset.count_eq_zero_of_notMem hP]
+  have hval : (primesOverP1 g i).val = UniqueFactorizationMonoid.normalizedFactors I := by
+    rw [← htofin, Multiset.toFinset_val, Multiset.dedup_eq_self.mpr hnodup]
+  rw [← hIspan, Finset.prod_eq_multiset_prod]
+  rw [hval, Multiset.map_id']
+  exact (Ideal.prod_normalizedFactors_eq_self hIne).symm
+
 theorem Kf_span_m_eq_prod (g t : ℕ) :
     Ideal.span {((m t : ℕ) : 𝓞 (Kf g))} =
       ∏ i ∈ Finset.range t, ∏ P ∈ primesOverP1 g i, P := by
-  sorry
+  have hcast : ((m t : ℕ) : 𝓞 (Kf g)) = ∏ i ∈ Finset.range t, ((p1 i : ℕ) : 𝓞 (Kf g)) := by
+    rw [m]
+    push_cast
+    rfl
+  rw [hcast, ← Ideal.prod_span_singleton]
+  exact Finset.prod_congr rfl fun i _ => span_p1_eq_prod g i
 
 /-- [HARD] **Many conjugate-product ideals above `m`.**  There are at least
 `2^(t·2^(g-1))` integral ideals `𝔄` of `𝒪_{K_g}` with `𝔄 · 𝔄∗ = (m t)`

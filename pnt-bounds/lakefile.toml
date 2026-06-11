@@ -1,9 +1,0 @@
-name = "PntBounds"
-defaultTargets = ["PntBounds"]
-
-[[require]]
-name = "PrimeNumberTheoremAnd"
-git = "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd.git"
-
-[[lean_lib]]
-name = "PntBounds"

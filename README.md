@@ -24,37 +24,41 @@ formalized here.)
 
 ## Layout
 
-- `pnt-bounds/` — the **end-to-end artifact**.  A Lake project depending
-  on Mathlib and
-  [PrimeNumberTheoremAnd](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd)
-  (for a Chebyshev-type bound on primes in progressions mod 4, the only
-  analytic input).
-  - `PntBounds/Framework.lean` — the full proof (≈3,400 lines).
-  - `PntBounds/PolyBounds.lean`, `PntBounds/CountGlue.lean` — the
-    `j`-th-prime bounds from `chebyshev_asymptotic_pnt`.
+A single Lake project requiring Mathlib (via the
+[PrimeNumberTheoremAnd](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd)
+pin, currently Lean v4.30.0) and PrimeNumberTheoremAnd itself, whose
+`chebyshev_asymptotic_pnt` (sorry-free) is the only analytic input.
 
-  Verify with:
-  ```
-  cd pnt-bounds && lake build PntBounds
-  ```
-  and `#print axioms Erdos.erdos_unit_distance_uniform_constant_false`
-  after `import PntBounds.Framework`.
+The library is organised by subject:
 
-- `ErdosUnitDistance/Framework.lean` — the **main development**, a Lake
-  project at the repository root requiring **Mathlib master**.  Identical
-  to the end-to-end artifact except that the two prime-growth lemmas
-  remain `sorry`ed here (they need PrimeNumberTheoremAnd, whose Mathlib
-  pin lags master).  Verify with:
-  ```
-  lake exe cache get && lake build
-  ```
+| module | contents |
+|---|---|
+| `Counting` | unit-distance pair counts; transport `ℂ ≃ ℝ²` |
+| `GeometricCore` | grid-pigeonhole packing/doubling in polydiscs; the translation argument |
+| `PrimesMod4` | the `j`-th primes `≡ 1, 3 (mod 4)`; polynomial growth from PNT-in-AP; the modulus `m t` |
+| `MultiquadraticField` | `K_g = ℚ(i, √q₀, …, √q_{g-1})`: degree `2^(g+1)` by square-class descent; CM structure |
+| `ClassNumber` | ideal counting by injective encoding; `h ≤ \|d\|·4^deg`; unit square classes |
+| `Discriminant` | diagonal trace form on subset products; `log h_{K_g} = O(2^g·g log g)` |
+| `IdealFamily` | unramifiedness, inertia `≤ 2`, conjugation freeness; the `2^(t·2^(g-1))` ideals over `m` |
+| `NormFibre` | the two pigeonholes; the fibre `Z = {z ∈ 𝔟 : z·z∗ = μ}` |
+| `PointCount` | Minkowski embedding, separation, the planar point set |
+| `Main` | the counting assembly and the theorem |
+
+Verify with:
+
+```
+lake exe cache get && lake build
+```
+
+and then
+
+```lean
+import ErdosUnitDistance
+#print axioms Erdos.erdos_unit_distance_uniform_constant_false
+-- [propext, Classical.choice, Quot.sound]
+```
 
 - `informal-proof.md` — a faithful transcription of the informal proof.
-- `scratch/` — intermediate developments (square-class descent, the
-  ideal-family decomposition, the Rankin count experiments).
-- `gen_submissions.py`, `integrate.py`, `drain-queue.sh`, `poll.py` —
-  the orchestration tooling used to fan the 27 intermediate lemmas out to
-  automated provers and to splice the results back.
 - `formalization.yaml` — provenance and resource-usage metadata.
 
 ## Proof structure

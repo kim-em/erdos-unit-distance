@@ -10,19 +10,17 @@ result:
     bound ν(n) ≤ n^(1 + C/log log n) for an absolute constant C.)
   axioms: [propext, Classical.choice, Quot.sound]
   sorries: 0
-  lean_toolchain: leanprover/lean4:v4.30.0   # end-to-end artifact (pnt-bounds/)
-  main_toolchain: leanprover/lean4:v4.31.0-rc2          # root project, Mathlib master
+  lean_toolchain: leanprover/lean4:v4.30.0   # PrimeNumberTheoremAnd's pin
   note: >
     Strictly weaker than the lean-eval problem
     erdos_unit_distance_conjecture_false (fixed power gain n^(1+δ),
     OpenAI 2026 via class field towers), which remains open in Lean.
 
 artifacts:
-  end_to_end: https://github.com/kim-em/erdos-unit-distance (pnt-bounds/)
-  mathlib_development: https://github.com/kim-em/erdos-unit-distance (ErdosUnitDistance/, root Lake project on Mathlib master)
+  repository: https://github.com/kim-em/erdos-unit-distance
   verification: |
-    cd pnt-bounds && lake build PntBounds
-    # then: import PntBounds.Framework
+    lake exe cache get && lake build
+    # then: import ErdosUnitDistance
     #       #print axioms Erdos.erdos_unit_distance_uniform_constant_false
 
 dates:

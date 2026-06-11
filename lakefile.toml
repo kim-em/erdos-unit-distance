@@ -2,9 +2,8 @@ name = "ErdosUnitDistance"
 defaultTargets = ["ErdosUnitDistance"]
 
 [[require]]
-name = "mathlib"
-git = "https://github.com/leanprover-community/mathlib4.git"
-rev = "master"
+name = "PrimeNumberTheoremAnd"
+git = "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd.git"
 
 [[lean_lib]]
 name = "ErdosUnitDistance"

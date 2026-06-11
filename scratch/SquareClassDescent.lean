@@ -156,6 +156,71 @@ theorem squareClass_of_sqrt_mem (c : ℕ → ℚ) (hc : ∀ j, 0 < c j) :
           rw [Real.sq_sqrt (show (0 : ℝ) ≤ (c n : ℝ) by exact_mod_cast (hc n).le)]
           exact SubfieldClass.ratCast_mem _ (c n)
         obtain ⟨a, b, ha, hb, heq⟩ := mem_sup_adjoin_sq hx2 hmem
-        sorry
+        have hsq : (r : ℝ) =
+            a ^ 2 + b ^ 2 * (c n : ℝ) + 2 * a * b * Real.sqrt (c n) := by
+          calc
+            (r : ℝ) = (Real.sqrt (r : ℝ)) ^ 2 := by
+              rw [Real.sq_sqrt (show 0 ≤ (r : ℝ) by exact_mod_cast hr.le)]
+            _ = (a + b * Real.sqrt (c n)) ^ 2 := by rw [heq]
+            _ = a ^ 2 + b ^ 2 * (c n : ℝ) + 2 * a * b * Real.sqrt (c n) := by
+              have hsqrtc_sq : (Real.sqrt (c n) : ℝ) ^ 2 = (c n : ℝ) := by
+                rw [Real.sq_sqrt (show (0 : ℝ) ≤ (c n : ℝ) by exact_mod_cast (hc n).le)]
+              nlinarith
+        have hcross_eq :
+            2 * a * b * Real.sqrt (c n) =
+              (r : ℝ) - a ^ 2 - b ^ 2 * (c n : ℝ) := by
+          linarith
+        have hcross_mem : 2 * a * b * Real.sqrt (c n) ∈ sqrtTower c n := by
+          rw [hcross_eq]
+          exact sub_mem
+            (sub_mem (SubfieldClass.ratCast_mem _ r) (pow_mem ha 2))
+            (mul_mem (pow_mem hb 2) (SubfieldClass.ratCast_mem _ (c n)))
+        by_cases hab : a * b = 0
+        · rcases mul_eq_zero.mp hab with ha0 | hb0
+          · have hsqrt_mul_mem : Real.sqrt ((r * c n : ℚ) : ℝ) ∈ sqrtTower c n := by
+              have hsqrt_mul :
+                  Real.sqrt ((r * c n : ℚ) : ℝ) =
+                    Real.sqrt (r : ℝ) * Real.sqrt (c n : ℝ) := by
+                rw [Rat.cast_mul]
+                exact Real.sqrt_mul (show 0 ≤ (r : ℝ) by exact_mod_cast hr.le) (c n : ℝ)
+              rw [hsqrt_mul, heq, ha0, zero_add]
+              convert mul_mem hb hx2 using 1
+              ring
+            obtain ⟨T, s, hT, hmul⟩ :=
+              ih (r * c n) (mul_pos hr (hc n)) hsqrt_mul_mem
+            have hnT : n ∉ T := by
+              intro hn
+              have := hT hn
+              simp at this
+            refine ⟨insert n T, s / c n, ?_, ?_⟩
+            · intro j hj
+              rw [Finset.mem_coe, Finset.mem_insert] at hj
+              rw [Set.mem_Iio]
+              rcases hj with rfl | hj
+              · omega
+              · exact Nat.lt_trans (hT hj) n.lt_succ_self
+            · have hcn0 : c n ≠ 0 := (hc n).ne'
+              rw [Finset.prod_insert hnT]
+              field_simp [hcn0]
+              nlinarith [hmul]
+          · have hsqrt_mem : (Real.sqrt r : ℝ) ∈ sqrtTower c n := by
+              rw [heq, hb0, zero_mul, add_zero]
+              exact ha
+            obtain ⟨T, s, hT, hres⟩ := ih r hr hsqrt_mem
+            exact ⟨T, s, hT.trans (Set.Iio_subset_Iio n.le_succ), hres⟩
+        · have hcoef_mem : 2 * a * b ∈ sqrtTower c n := by
+            exact mul_mem (mul_mem (SubfieldClass.ratCast_mem _ (2 : ℚ)) ha) hb
+          have hcoef_ne : 2 * a * b ≠ 0 := by
+            have h2ab : (2 : ℝ) * (a * b) ≠ 0 := mul_ne_zero (by norm_num) hab
+            convert h2ab using 1
+            ring
+          have hsqrt_mem : Real.sqrt (c n) ∈ sqrtTower c n := by
+            have hmem' := mul_mem (inv_mem hcoef_mem) hcross_mem
+            have hEq :
+                (2 * a * b)⁻¹ * (2 * a * b * Real.sqrt (c n)) = Real.sqrt (c n) := by
+              rw [← mul_assoc, inv_mul_cancel₀ hcoef_ne, one_mul]
+            rw [← hEq]
+            exact hmem'
+          exact (hcn hsqrt_mem).elim
 
 end Erdos

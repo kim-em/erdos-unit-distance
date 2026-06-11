@@ -252,7 +252,126 @@ odd on the left, even on the right (`s²` contributes evenly, the distinct
 primes contribute `0`). -/
 theorem q3_not_squareClass (n : ℕ) (T : Finset ℕ) (hT : ↑T ⊆ Set.Iio n)
     (s : ℚ) : ((q3 n : ℚ)) ≠ s ^ 2 * ∏ j ∈ T, ((q3 j : ℚ)) := by
-  sorry
+  classical
+  intro h
+  have hp : (q3 n).Prime := (q3_spec n).1
+  haveI : Fact (q3 n).Prime := ⟨hp⟩
+  have hqn0 : (q3 n : ℚ) ≠ 0 := by exact_mod_cast hp.ne_zero
+  have hs0 : s ≠ 0 := by
+    intro hs
+    apply hqn0
+    simpa [hs] using h
+  have hval_factor :
+      ∀ j ∈ T, padicValRat (q3 n) (q3 j : ℚ) = 0 := by
+    intro j hj
+    have hjn : j < n := hT (by simpa using hj)
+    have hneq : q3 n ≠ q3 j := by
+      exact ne_of_gt (q3_strictMono hjn)
+    haveI : Fact (q3 j).Prime := ⟨(q3_spec j).1⟩
+    rw [padicValRat.of_nat, padicValNat_primes hneq]
+    norm_num
+  have hprod0 : (∏ j ∈ T, (q3 j : ℚ)) ≠ 0 := by
+    exact Finset.prod_ne_zero_iff.mpr (by
+      intro j hj
+      exact_mod_cast (q3_spec j).1.ne_zero)
+  have hprodVal_aux :
+      ∀ U : Finset ℕ, ↑U ⊆ Set.Iio n →
+        padicValRat (q3 n) (∏ j ∈ U, (q3 j : ℚ)) = 0 := by
+    intro U
+    refine Finset.induction_on U ?base ?step
+    · intro hU
+      simp [padicValRat.one]
+    · intro a U haU ih hU
+      have hqa0 : (q3 a : ℚ) ≠ 0 := by exact_mod_cast (q3_spec a).1.ne_zero
+      have hUprod0 : (∏ j ∈ U, (q3 j : ℚ)) ≠ 0 := by
+        exact Finset.prod_ne_zero_iff.mpr (by
+          intro j hj
+          exact_mod_cast (q3_spec j).1.ne_zero)
+      have ha_lt : a < n := hU (Finset.mem_insert_self a U)
+      have hneq : q3 n ≠ q3 a := by
+        exact ne_of_gt (q3_strictMono ha_lt)
+      haveI : Fact (q3 a).Prime := ⟨(q3_spec a).1⟩
+      have hvala : padicValRat (q3 n) (q3 a : ℚ) = 0 := by
+        rw [padicValRat.of_nat, padicValNat_primes hneq]
+        norm_num
+      have ih' : padicValRat (q3 n) (∏ j ∈ U, (q3 j : ℚ)) = 0 := by
+        exact ih (by
+          intro j hj
+          exact hU (by simp [hj]))
+      rw [Finset.prod_insert haU, padicValRat.mul hqa0 hUprod0,
+        hvala, ih', add_zero]
+  have hprodVal : padicValRat (q3 n) (∏ j ∈ T, (q3 j : ℚ)) = 0 :=
+    hprodVal_aux T hT
+  have hval := congrArg (padicValRat (q3 n)) h
+  rw [padicValRat.self hp.one_lt, padicValRat.mul (pow_ne_zero 2 hs0) hprod0,
+    padicValRat.pow hs0, hprodVal, add_zero] at hval
+  omega
+
+private theorem finrank_adjoin_simple_eq_two_of_sq_mem_notMem
+    {E : Type*} [Field E] [Algebra ℚ E] (K : IntermediateField ℚ E) {x : E}
+    (hx2 : x ^ 2 ∈ K) (hxK : x ∉ K) :
+    Module.finrank K (IntermediateField.adjoin K {x}) = 2 := by
+  have hx2_int : IsIntegral K (x ^ 2) := by
+    rw [← show algebraMap K E ⟨x ^ 2, hx2⟩ = x ^ 2 from rfl]
+    exact isIntegral_algebraMap (R := K) (A := E) (x := ⟨x ^ 2, hx2⟩)
+  have hx_int : IsIntegral K x := IsIntegral.of_pow (by norm_num : 0 < 2) hx2_int
+  have hfin := IntermediateField.adjoin.finrank hx_int
+  have hle : (minpoly K x).natDegree ≤ 2 := by
+    let a : K := ⟨x ^ 2, hx2⟩
+    have hroot :
+        Polynomial.aeval x ((Polynomial.X : Polynomial K) ^ 2 - Polynomial.C a) = 0 := by
+      simp [a]
+    have hdvd : minpoly K x ∣ ((Polynomial.X : Polynomial K) ^ 2 - Polynomial.C a) :=
+      minpoly.dvd K x hroot
+    have hpoly_ne : ((Polynomial.X : Polynomial K) ^ 2 - Polynomial.C a) ≠ 0 := by
+      intro hzero
+      have hdeg := congrArg Polynomial.natDegree hzero
+      norm_num at hdeg
+    have hdeg_poly :
+        (((Polynomial.X : Polynomial K) ^ 2 - Polynomial.C a)).natDegree = 2 := by
+      simp
+    exact (Polynomial.natDegree_le_of_dvd hdvd hpoly_ne).trans_eq hdeg_poly
+  have hpos : 0 < (minpoly K x).natDegree := minpoly.natDegree_pos hx_int
+  have hne1 : (minpoly K x).natDegree ≠ 1 := by
+    intro hdeg1
+    have hfin1 : Module.finrank K (IntermediateField.adjoin K {x}) = 1 := by
+      simpa [hfin] using hdeg1
+    have hxbot : x ∈ (⊥ : IntermediateField K E) :=
+      (IntermediateField.finrank_adjoin_simple_eq_one_iff).mp hfin1
+    rw [IntermediateField.mem_bot] at hxbot
+    obtain ⟨y, hy⟩ := hxbot
+    apply hxK
+    rw [← hy]
+    exact y.2
+  omega
+
+private theorem finrank_sup_adjoin_simple_eq_mul_two
+    {E : Type*} [Field E] [Algebra ℚ E] (K : IntermediateField ℚ E) {x : E}
+    (hx2 : x ^ 2 ∈ K) (hxK : x ∉ K) :
+    Module.finrank ℚ ((K ⊔ IntermediateField.adjoin ℚ ({x} : Set E)) :
+      IntermediateField ℚ E) =
+      Module.finrank ℚ K * 2 := by
+  let L : IntermediateField K E := IntermediateField.adjoin K {x}
+  have hL :
+      L.restrictScalars ℚ = K ⊔ IntermediateField.adjoin ℚ ({x} : Set E) := by
+    simpa [L] using (IntermediateField.restrictScalars_adjoin_eq_sup (F := ℚ) K ({x} : Set E))
+  have hfinL : Module.finrank K L = 2 :=
+    finrank_adjoin_simple_eq_two_of_sq_mem_notMem K hx2 hxK
+  let e : (L.restrictScalars ℚ) ≃ₗ[ℚ] L :=
+    { toFun := fun y => ⟨(y : E), y.2⟩
+      invFun := fun y => ⟨(y : E), y.2⟩
+      left_inv := fun y => rfl
+      right_inv := fun y => rfl
+      map_add' := fun y z => rfl
+      map_smul' := fun q y => rfl }
+  calc
+    Module.finrank ℚ ((K ⊔ IntermediateField.adjoin ℚ ({x} : Set E)) :
+      IntermediateField ℚ E)
+        = Module.finrank ℚ (L.restrictScalars ℚ) := by rw [hL]
+    _ = Module.finrank ℚ L := e.finrank_eq
+    _ = Module.finrank ℚ K * Module.finrank K L := by
+      rw [Module.finrank_mul_finrank]
+    _ = Module.finrank ℚ K * 2 := by rw [hfinL]
 
 /-- `√(q3 n)` does not lie in the tower generated by the earlier square
 roots (descent + valuation parity). -/
@@ -261,7 +380,9 @@ theorem sqrt_q3_notMem_tower (n : ℕ) :
   intro hmem
   obtain ⟨T, s, hT, heq⟩ :=
     squareClass_of_sqrt_mem (fun j => (q3 j : ℚ))
-      (fun j => by exact_mod_cast (q3_spec j).1.pos) n (q3 n)
+      (fun j => by
+        show (0 : ℚ) < (q3 j : ℚ)
+        exact_mod_cast (q3_spec j).1.pos) n (q3 n)
       (by exact_mod_cast (q3_spec n).1.pos) hmem
   exact q3_not_squareClass n T hT s heq
 
@@ -270,7 +391,25 @@ each step adjoins a root of the irreducible (no root, degree 2)
 polynomial `X² - q3 n`. -/
 theorem sqrtTower_finrank (n : ℕ) :
     Module.finrank ℚ (sqrtTower (fun j => (q3 j : ℚ)) n) = 2 ^ n := by
-  sorry
+  induction n with
+  | zero =>
+      rw [sqrtTower_zero]
+      exact IntermediateField.finrank_bot
+  | succ n ih =>
+      rw [sqrtTower_succ]
+      have hx2 :
+          (Real.sqrt ((q3 n : ℚ) : ℝ)) ^ 2 ∈
+            sqrtTower (fun j => (q3 j : ℚ)) n := by
+        rw [Real.sq_sqrt]
+        · exact SubfieldClass.ratCast_mem _ (q3 n : ℚ)
+        · exact_mod_cast (q3_spec n).1.pos.le
+      have hxK :
+          Real.sqrt ((q3 n : ℚ) : ℝ) ∉
+            sqrtTower (fun j => (q3 j : ℚ)) n := by
+        simpa using sqrt_q3_notMem_tower n
+      rw [finrank_sup_adjoin_simple_eq_mul_two
+        (sqrtTower (fun j => (q3 j : ℚ)) n) hx2 hxK, ih]
+      rw [pow_succ]
 
 /-- The multiquadratic CM field (must match `Framework.lean` verbatim). -/
 noncomputable def Kf (g : ℕ) : IntermediateField ℚ ℂ :=
@@ -284,6 +423,75 @@ isomorphic intermediate field of `ℂ` generated by the `(√q3 j : ℂ)`
 (`adjoin_insert`), and `X² + 1` has no root in the (real-valued) image,
 so the degree doubles once more. -/
 theorem Kf_finrank (g : ℕ) : Module.finrank ℚ (Kf g) = 2 ^ (g + 1) := by
-  sorry
+  let φ : ℝ →ₐ[ℚ] ℂ := Complex.ofRealHom.toRatAlgHom
+  let Kr : IntermediateField ℚ ℝ := sqrtTower (fun j => (q3 j : ℚ)) g
+  let Kc : IntermediateField ℚ ℂ := Kr.map φ
+  have hKc_fin : Module.finrank ℚ Kc = 2 ^ g := by
+    let e : Kr.toSubalgebra ≃ₐ[ℚ] Kc.toSubalgebra :=
+      (Kr.toSubalgebra.equivMapOfInjective φ φ.injective).trans
+        (Subalgebra.equivOfEq _ _ (by dsimp [Kc]))
+    have hfin : Module.finrank ℚ Kc.toSubalgebra = Module.finrank ℚ Kr.toSubalgebra :=
+      e.toLinearEquiv.finrank_eq.symm
+    let eKc : Kc.toSubalgebra ≃ₗ[ℚ] Kc :=
+      { toFun := fun y => ⟨(y : ℂ), y.2⟩
+        invFun := fun y => ⟨(y : ℂ), y.2⟩
+        left_inv := fun y => rfl
+        right_inv := fun y => rfl
+        map_add' := fun y z => rfl
+        map_smul' := fun q y => rfl }
+    let eKr : Kr.toSubalgebra ≃ₗ[ℚ] Kr :=
+      { toFun := fun y => ⟨(y : ℝ), y.2⟩
+        invFun := fun y => ⟨(y : ℝ), y.2⟩
+        left_inv := fun y => rfl
+        right_inv := fun y => rfl
+        map_add' := fun y z => rfl
+        map_smul' := fun q y => rfl }
+    calc
+      Module.finrank ℚ Kc = Module.finrank ℚ Kc.toSubalgebra := eKc.finrank_eq.symm
+      _ = Module.finrank ℚ Kr.toSubalgebra := hfin
+      _ = Module.finrank ℚ Kr := eKr.finrank_eq
+      _ = 2 ^ g := by
+        dsimp [Kr]
+        rw [sqrtTower_finrank]
+  have hKc :
+      Kc =
+        IntermediateField.adjoin ℚ
+          ((fun j => ((Real.sqrt (q3 j) : ℝ) : ℂ)) '' Set.Iio g) := by
+    dsimp [Kc, Kr]
+    rw [sqrtTower, IntermediateField.adjoin_map]
+    congr 1
+    ext z
+    constructor
+    · rintro ⟨x, ⟨j, hj, rfl⟩, rfl⟩
+      exact ⟨j, hj, by simp [φ, RingHom.toRatAlgHom_apply]⟩
+    · rintro ⟨j, hj, rfl⟩
+      exact ⟨Real.sqrt (q3 j : ℚ), ⟨j, hj, rfl⟩, by
+        simp [φ, RingHom.toRatAlgHom_apply]⟩
+  have hKf :
+      Kf g = Kc ⊔ IntermediateField.adjoin ℚ ({Complex.I} : Set ℂ) := by
+    rw [hKc, Kf, ← IntermediateField.adjoin_union]
+    congr 1
+    ext z
+    constructor
+    · intro hz
+      rw [Set.mem_insert_iff] at hz
+      rw [Set.mem_union, Set.mem_singleton_iff]
+      tauto
+    · intro hz
+      rw [Set.mem_union, Set.mem_singleton_iff] at hz
+      rw [Set.mem_insert_iff]
+      tauto
+  have hI2 : Complex.I ^ 2 ∈ Kc := by
+    rw [sq, Complex.I_mul_I]
+    exact neg_mem (one_mem Kc)
+  have hInot : Complex.I ∉ Kc := by
+    intro hI
+    dsimp [Kc] at hI
+    rw [IntermediateField.mem_map] at hI
+    obtain ⟨y, hy, hyI⟩ := hI
+    have him := congrArg Complex.im hyI
+    simp [φ, RingHom.toRatAlgHom_apply] at him
+  rw [hKf, finrank_sup_adjoin_simple_eq_mul_two Kc hI2 hInot, hKc_fin]
+  rw [pow_succ]
 
 end Erdos

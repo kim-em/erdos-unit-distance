@@ -11,3 +11,6 @@ f45ea6b3-f413-424a-af2d-85e7298fd50f	exists_euclidean_copy
 99791e2f-0a1c-4ad9-afef-d73a62cda6da	classNumber_le_bound
 e2d59aa2-188d-41f0-9ca9-9eef747f8036	card_ideal_absNorm_le
 4d397357-4d3b-42da-ad0c-2fd3e5a29c0a	arithmetic_construction
+db6fd77f-24ae-49d1-85f8-7c87888497c7	two_mul_unitDist
+43eb2c20-aea3-4f3d-ab5e-c065ecf64265	ncard_box_two_le_doubling
+c7ab5b1d-b204-4af3-bf98-fcbc0afda5c9	le_unitPairsC_of_translates

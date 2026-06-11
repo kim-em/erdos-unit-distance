@@ -1,0 +1,15 @@
+Kf_discr_le
+Kf_finiteDimensional
+Kf_finrank
+Kf_isAbelianGalois
+Kf_isTotallyComplex
+lattice_inter_box_finite_card
+le_unitPairsC_of_translates
+log_classNumber_Kf_le
+log_m_le
+m_ge
+ncard_box_two_le_doubling
+p1_poly_bound
+q3_poly_bound
+two_mul_unitDist
+units_sq_index_le

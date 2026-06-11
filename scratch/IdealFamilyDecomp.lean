@@ -2418,7 +2418,19 @@ and `Kf_finrank`), `#primesOver · e · f = 2^(g+1)` with `e = 1`
 (`Kf_ramificationIdxIn_eq_one`) and `f ≤ 2` (`Kf_inertiaDegIn_le_two`). -/
 theorem Kf_card_primesOver_ge (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p % 4 = 1) :
     2 ^ g ≤ (Ideal.primesOver (Ideal.span {(p : ℤ)}) (𝓞 (Kf g))).ncard := by
-  sorry
+  haveI : IsGalois ℚ (Kf g) := Kf_isGalois g
+  obtain ⟨hpz, hp0, hpprime, hpmax, hp4dvd⟩ := p_prime_facts hp hp4
+  haveI : (Ideal.span {(p : ℤ)}).IsMaximal := hpmax
+  have hfund := Ideal.ncard_primesOver_mul_ramificationIdxIn_mul_inertiaDegIn
+    (p := Ideal.span {(p : ℤ)}) hp0 (𝓞 (Kf g)) (Kf g ≃ₐ[ℚ] Kf g)
+  have hG : Nat.card (Kf g ≃ₐ[ℚ] Kf g) = 2 ^ (g + 1) := by
+    simpa [Nat.card_eq_fintype_card, Kf_finrank] using IsGalois.card_aut_eq_finrank ℚ (Kf g)
+  have he := Kf_ramificationIdxIn_eq_one g p hp hp4
+  have hf := Kf_inertiaDegIn_le_two g p hp hp4
+  rw [hG, he, one_mul] at hfund
+  have h2 : (2 : ℕ) ^ (g + 1) = 2 ^ g * 2 := by rw [pow_succ]
+  nlinarith [(Ideal.primesOver (Ideal.span {(p : ℤ)}) (𝓞 (Kf g))).ncard.zero_le,
+    Nat.zero_le (Ideal.inertiaDegIn (Ideal.span {(p : ℤ)}) (𝓞 (Kf g)))]
 
 /-- [decomp 3] Complex conjugation moves every prime of `K_g` lying over a
 rational prime `p ≡ 1 mod 4`.  Elementary route: if `map conj P = P` then

@@ -23,3 +23,8 @@ cdaa5407-8631-4c26-b278-18d91627359d	units_sq_index_le
 19156a6f-aa86-4380-b2e7-b9c6aaf91638	Kf_discr_le
 c67df2c2-e7c2-44a3-affe-845b72b9fac2	log_m_le
 92a96281-3b1d-4980-8e35-9831946fbef7	log_classNumber_Kf_le
+029c4cb5-0325-4ada-828e-eb699c4cf165	decomp-Kf_inertiaDegIn_le_two
+ff3cca9f-e350-4a40-a339-aad875b0d91b	decomp-Kf_card_primesOver_ge
+b4fd895b-5a91-473d-89a2-c0a9db6a4068	decomp-Kf_conj_primesOver_ne
+49233978-baf2-4a7d-80c4-fd1e5a10499f	decomp-Kf_span_m_eq_prod
+542b4d25-7970-4169-9d47-5279ddabd9cf	decomp-exists_ideal_family

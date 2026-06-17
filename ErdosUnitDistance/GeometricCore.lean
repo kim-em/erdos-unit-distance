@@ -126,10 +126,10 @@ theorem finite_and_card_le_of_separated (r : ι → ℝ) (hr : ∀ i, 0 < r i)
     have h_diff : ‖x i - y i‖ < δ i * Real.sqrt 2 := by
       apply norm_lt_of_re_im_bound;
       · exact div_nonneg ( mul_nonneg hε.le ( le_of_lt ( hr i ) ) ) ( Real.sqrt_nonneg _ );
-      · convert cell_index_diff hε ( hr i ) _ using 1;
-        exacts [ c, by simpa using congr_arg Prod.fst ( congr_fun hxy i ) ];
-      · convert cell_index_diff hε ( hr i ) _ using 1;
-        exacts [ c, by simpa using congr_arg Prod.snd ( congr_fun hxy i ) ];
+      · convert! cell_index_diff hε ( hr i ) _ using 1;
+        exacts [ c, by simpa using! congr_arg Prod.fst ( congr_fun hxy i ) ];
+      · convert! cell_index_diff hε ( hr i ) _ using 1;
+        exacts [ c, by simpa using! congr_arg Prod.snd ( congr_fun hxy i ) ];
     rw [ div_mul_cancel₀ _ ( by positivity ) ] at h_diff ; linarith;
   -- Conclude that `S` is finite and its cardinality is bounded by `T.card`.
   have h_finite : S.Finite := by

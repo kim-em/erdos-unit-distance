@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import ErdosUnitDistance.Discriminant
+import TauCeti.NumberTheory.DedekindDomain.Transversal
 
 /-!
 # The conjugate-product ideal family
@@ -21,7 +22,6 @@ namespace Erdos
 
 
 
-set_option maxHeartbeats 1000000 in
 lemma exists_transversal_family {R : Type*} [CommRing R] [IsDedekindDomain R]
     (σ : R ≃+* R) (S : Finset (Ideal R))
     (hprime : ∀ p ∈ S, p.IsPrime) (hne : ∀ p ∈ S, p ≠ ⊥)
@@ -30,80 +30,49 @@ lemma exists_transversal_family {R : Type*} [CommRing R] [IsDedekindDomain R]
     (hfree : ∀ p ∈ S, Ideal.map σ p ≠ p) :
     ∃ G : Finset (Ideal R), 2 ^ (S.card / 2) ≤ G.card ∧
       ∀ A ∈ G, A * Ideal.map σ A = ∏ p ∈ S, p := by
-  induction' S using Finset.strongInduction with S ih;
-  by_cases hS : S.Nonempty;
-  · obtain ⟨p, hp⟩ : ∃ p ∈ S, Ideal.map σ p ∈ S ∧ Ideal.map σ p ≠ p := by
-      exact ⟨ hS.choose, hS.choose_spec, hinv _ hS.choose_spec, hfree _ hS.choose_spec ⟩;
-    obtain ⟨G', hG'⟩ : ∃ G' : Finset (Ideal R), 2 ^ ((S \ {p, Ideal.map σ p}).card / 2) ≤ G'.card ∧ ∀ A ∈ G', A * Ideal.map σ A = ∏ x ∈ S \ {p, Ideal.map σ p}, x := by
-      apply ih (S \ {p, Ideal.map σ p});
-      grind +locals;
-      · exact fun q hq => hprime q ( Finset.mem_sdiff.mp hq |>.1 );
-      · exact fun q hq => hne q ( Finset.mem_sdiff.mp hq |>.1 );
-      · grind +revert;
-      · exact fun q hq => hinvol q ( Finset.mem_sdiff.mp hq |>.1 );
-      · exact fun q hq => hfree q ( Finset.mem_sdiff.mp hq |>.1 );
-    refine' ⟨ Finset.image ( fun A => A * p ) G' ∪ Finset.image ( fun A => A * Ideal.map σ p ) G', _, _ ⟩;
-    · rw [ Finset.card_union_of_disjoint ];
-      · rw [ Finset.card_image_of_injective, Finset.card_image_of_injective ] <;> norm_num [ Function.Injective ];
-        · rw [ show S.card = ( S \ { p, Ideal.map σ p } ).card + 2 from ?_ ];
-          · norm_num [ Nat.add_div ] at * ; linarith [ pow_succ' 2 ( ( S \ { p, Ideal.map σ p } ).card / 2 ) ];
-          · grind +qlia;
-        · exact fun a₁ a₂ h => h.resolve_right ( by specialize hne _ hp.2.1; aesop );
-        · exact fun _ _ h => h.resolve_right ( hne p hp.1 );
-      · simp +decide [ Finset.disjoint_left, hp ];
-        intro a ha x hx h;
-        have h_div : p ∣ x := by
-          have h_div : p ∣ x * Ideal.map σ p := by
-            exact h.symm ▸ dvd_mul_left _ _;
-          have h_not_div : ¬(p ∣ Ideal.map σ p) := by
-            intro h_div;
-            have h_div : Ideal.map σ p ≤ p := by
-              exact Ideal.le_of_dvd h_div;
-            have h_div : p ≤ Ideal.map σ p := by
-              have hmono : Ideal.map σ (Ideal.map σ p) ≤ Ideal.map σ p :=
-                Ideal.map_mono h_div
-              rwa [hinvol p hp.1] at hmono
-            exact hp.2.2 ( le_antisymm ‹_› ‹_› );
-          have h_div_x : p ∣ x * Ideal.map σ p → ¬(p ∣ Ideal.map σ p) → p ∣ x := by
-            simp +decide [ Ideal.dvd_iff_le ] at *;
-            exact fun _ _ => by have := hprime p hp.1; exact this.mul_le.mp h_div |> fun h => h.resolve_right ‹_›;
-          exact h_div_x h_div h_not_div;
-        have h_div_prod : p ∣ ∏ x ∈ S \ {p, Ideal.map σ p}, x := by
-          exact hG'.2 x hx ▸ dvd_mul_of_dvd_left h_div _;
-        have h_div_prod : ∀ {T : Finset (Ideal R)}, (∀ q ∈ T, q.IsPrime) → (∀ q ∈ T, q ≠ ⊥) → (∀ q ∈ T, q ≠ p) → ¬(p ∣ ∏ x ∈ T, x) := by
-          intros T hT_prime hT_ne_bot hT_ne_p; induction' T using Finset.induction with q T hqT ih; simp_all +decide [ Ideal.dvd_iff_le ] ;
-          · exact hprime p hp.1 |> fun h => h.ne_top;
-          · rw [ Ideal.dvd_iff_le ] at *;
-            contrapose! ih;
-            simp_all +decide [ Ideal.mul_le ];
-            intro s hs;
-            by_cases hq : q ≤ p;
-            · have hq_eq_p : q = p := by
-                have hq_eq_p : q.IsMaximal := by
-                  exact hT_prime.1.isMaximal ( by aesop );
-                have := hq_eq_p.1;
-                have := this.2;
-                exact Classical.not_not.1 fun h => absurd ( this p ( lt_of_le_of_ne hq h ) ) ( by
-                  exact hprime p hp.1 |> fun h => h.ne_top );
-              tauto;
-            · obtain ⟨ r, hr, hr' ⟩ := Set.not_subset.mp hq;
-              have := ih r hr s hs;
-              exact Or.resolve_left ( hprime p hp.1 |>.mem_or_mem this ) hr';
-        grind +qlia;
-    · simp +zetaDelta at *;
-      rintro A ( ⟨ A', hA', rfl ⟩ | ⟨ A', hA', rfl ⟩ ) <;> simp_all +decide [ mul_assoc, Finset.prod_insert, Finset.prod_singleton ];
-      · simp_all +decide [ ← mul_assoc, Ideal.map_mul ];
-        rw [ show ( ∏ p ∈ S, p ) = ( ∏ p ∈ S \ { p, Ideal.map σ p }, p ) * p * Ideal.map σ p from ?_ ];
-        · rw [ ← hG'.2 A' hA' ] ; ring;
-        · rw [ ← Finset.prod_sdiff ( Finset.insert_subset hp.1 ( Finset.singleton_subset_iff.mpr hp.2.1 ) ) ];
-          rw [ Finset.prod_pair ( Ne.symm hp.2.2 ) ] ; ring;
-      · simp_all +decide [ ← mul_assoc, Ideal.map_mul ];
-        rw [ show ∏ p ∈ S, p = ( ∏ p ∈ S \ { p, Ideal.map σ p }, p ) * p * Ideal.map σ p from ?_ ];
-        · rw [ ← hG'.2 A' hA' ] ; ring;
-        · rw [ ← Finset.prod_sdiff ( Finset.insert_subset hp.1 ( Finset.singleton_subset_iff.mpr hp.2.1 ) ) ];
-          rw [ Finset.prod_pair ( Ne.symm hp.2.2 ) ] ; ring;
-  · refine' ⟨ { 1 }, _, _ ⟩ <;> simp_all +decide;
-    exact Ideal.map_top _
+  classical
+  -- Bundle each prime of `S` as a height-one spectrum element and delegate to TauCeti.
+  set f : {p // p ∈ S} → IsDedekindDomain.HeightOneSpectrum R :=
+    fun x => ⟨x.1, hprime x.1 x.2, hne x.1 x.2⟩ with hf
+  have hfinj : Function.Injective f := fun x y h =>
+    Subtype.ext (congrArg IsDedekindDomain.HeightOneSpectrum.asIdeal h)
+  set S' : Finset (IsDedekindDomain.HeightOneSpectrum R) := S.attach.image f with hS'
+  have hEqIdeal : ∀ q : IsDedekindDomain.HeightOneSpectrum R,
+      (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q).asIdeal
+        = Ideal.map σ q.asIdeal := by
+    intro q; ext x; simp [IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv]
+  have hmem : ∀ q : IsDedekindDomain.HeightOneSpectrum R, q ∈ S' ↔ q.asIdeal ∈ S := by
+    intro q
+    rw [hS', Finset.mem_image]
+    constructor
+    · rintro ⟨x, -, rfl⟩; exact x.2
+    · intro hq; exact ⟨⟨q.asIdeal, hq⟩, Finset.mem_attach _ _,
+        IsDedekindDomain.HeightOneSpectrum.ext rfl⟩
+  have hcard : S'.card = S.card := by
+    rw [hS', Finset.card_image_of_injective _ hfinj, Finset.card_attach]
+  have hprod : ∏ q ∈ S', q.asIdeal = ∏ p ∈ S, p := by
+    rw [hS', Finset.prod_image (fun x _ y _ h => hfinj h)]
+    exact Finset.prod_attach S (fun p => p)
+  have hinv' : ∀ q ∈ S', IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q ∈ S' := by
+    intro q hq
+    rw [hmem, hEqIdeal]
+    exact hinv q.asIdeal ((hmem q).mp hq)
+  have hinvol' : ∀ q ∈ S',
+      IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ
+        (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q) = q := by
+    intro q hq
+    apply IsDedekindDomain.HeightOneSpectrum.ext
+    rw [hEqIdeal, hEqIdeal]
+    exact hinvol q.asIdeal ((hmem q).mp hq)
+  have hfree' : ∀ q ∈ S', IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q ≠ q := by
+    intro q hq h
+    exact hfree q.asIdeal ((hmem q).mp hq)
+      (hEqIdeal q ▸ congrArg IsDedekindDomain.HeightOneSpectrum.asIdeal h)
+  obtain ⟨G, hGcard, hGprod⟩ :=
+    TauCeti.DedekindDomain.exists_transversal_family σ S' hinv' hinvol' hfree'
+  refine ⟨G, ?_, fun A hA => ?_⟩
+  · rwa [hcard] at hGcard
+  · rw [hGprod A hA, hprod]
 
 
 /-

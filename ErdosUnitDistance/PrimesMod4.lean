@@ -200,7 +200,7 @@ argument. -/
 theorem infinite_setOf_q3 : {n | n.Prime ∧ n % 4 = 3}.Infinite := by
   have h : {p : ℕ | p.Prime ∧ p ≡ 3 [MOD 4]}.Infinite :=
     Nat.infinite_setOf_prime_and_modEq (by norm_num) (by decide)
-  convert h using 2 with n
+  convert! h using 2 with n
 
 
 /-- [easy] There are infinitely many primes `≡ 1 mod 4`.
@@ -251,7 +251,7 @@ theorem log_m_le : ∃ c₁ : ℝ, 1 ≤ c₁ ∧
       · exact Real.log_nonneg ( by linarith );
       · exact le_trans ( Real.log_le_log ( Nat.cast_pos.mpr <| Nat.Prime.pos <| p1_spec i |>.1 ) <| hN i ‹_› ) <| by rw [ Real.log_pow ] ; norm_num ; gcongr;
     have h_log_m_le_step : Real.log (m t) ≤ ∑ i ∈ Finset.range t, (2 * Real.log (t + 2) + (if i < N then Real.log (p1 i) else 0)) := by
-      convert Finset.sum_le_sum fun i hi => h_log_m_le_step i ( Finset.mem_range.mp hi ) using 1;
+      convert! Finset.sum_le_sum fun i hi => h_log_m_le_step i ( Finset.mem_range.mp hi ) using 1;
       rw [ ← Real.log_prod ] <;> norm_cast ; norm_num [ m ];
       exact fun i hi => Nat.Prime.ne_zero ( p1_spec i |>.1 );
     simp_all +decide [ Finset.sum_add_distrib, Finset.sum_ite ];

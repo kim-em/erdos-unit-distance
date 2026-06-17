@@ -5,6 +5,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 
 import ErdosUnitDistance.MultiquadraticField
 import ErdosUnitDistance.ClassNumber
+import TauCeti.NumberTheory.EffectiveBounds.Discriminant
 
 /-!
 # The discriminant of the multiquadratic field
@@ -63,39 +64,8 @@ integer.)
 theorem abs_discr_le_of_basis_isIntegral {K : Type*} [Field K] [NumberField K]
     {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Basis ι ℚ K)
     (hb : ∀ i, IsIntegral ℤ (b i)) :
-    |(NumberField.discr K : ℚ)| ≤ |Algebra.discr ℚ (b : ι → K)| := by
-  -- Let `c := integralBasis K`, a `ℚ`-basis of `K` indexed by `Free.ChooseBasisIndex ℤ (𝓞 K)`.
-  set c := NumberField.integralBasis K;
-  -- Reindex `c` to `ι` using `e := c.indexEquiv b` and set `c' := c.reindex e`, a basis indexed by `ι` with `Algebra.discr ℚ c' = Algebra.discr ℚ c` (by `Algebra.discr_reindex`), and `Algebra.discr ℚ c = (NumberField.discr K : ℚ)` (by `NumberField.coe_discr`).
-  obtain ⟨e, he⟩ : ∃ e : Free.ChooseBasisIndex ℤ (NumberField.RingOfIntegers K) ≃ ι, True := by
-    refine' ⟨ _, trivial ⟩;
-    refine' Fintype.equivOfCardEq _;
-    have := Module.finrank_eq_card_basis c;
-    rw [ ← this, ← Module.finrank_eq_card_basis b ];
-  -- Let `P : Matrix ι ι ℚ := c'.toMatrix b`. By `Module.Basis.toMatrix_map_vecMul`, `b = c' ᵥ* P.map (algebraMap ℚ K)`, so by `Algebra.discr_of_matrix_vecMul`, `Algebra.discr ℚ b = P.det ^ 2 * Algebra.discr ℚ c' = P.det ^ 2 * (NumberField.discr K : ℚ)`.
-  set P : Matrix ι ι ℚ := c.reindex e |>.toMatrix b
-  have hP : Algebra.discr ℚ b = P.det ^ 2 * (NumberField.discr K : ℚ) := by
-    have hP : Algebra.discr ℚ b = P.det ^ 2 * Algebra.discr ℚ (c.reindex e) := by
-      convert Algebra.discr_of_matrix_vecMul ( c.reindex e ) P using 1;
-      convert rfl;
-      convert Module.Basis.toMatrix_map_vecMul ( c.reindex e ) b using 1;
-    convert hP using 1;
-    simp +decide [ Algebra.discr_reindex ];
-    exact Or.inl ( NumberField.coe_discr K );
-  -- The matrix `P` has integer entries: `P i j = c'.repr (b j) i = c.repr (b j) (e i)`, and since `b j` is integral over ℤ it lies in `(algebraMap (𝓞 K) K).range`, so by `NumberField.integralBasis_repr_apply` each `c.repr (b j) _` is `algebraMap ℤ ℚ` of an integer, i.e. an integer. Hence `P.det` is an integer: `∃ d : ℤ, P.det = (d : ℚ)` (use `IsIntegrallyClosed.isIntegral_iff` together with `IsIntegral.det`, or directly since each entry is in the range of `algebraMap ℤ ℚ`).
-  obtain ⟨d, hd⟩ : ∃ d : ℤ, P.det = d := by
-    have hP_int : ∀ i j, ∃ d : ℤ, P i j = d := by
-      intro i j;
-      have hP_int : ∀ j, ∃ d : NumberField.RingOfIntegers K, b j = algebraMap (NumberField.RingOfIntegers K) K d := by
-        exact fun j => ⟨ ⟨ b j, hb j ⟩, rfl ⟩;
-      obtain ⟨ d, hd ⟩ := hP_int j;
-      simp +zetaDelta at *;
-      simp +decide [ hd, Basis.toMatrix_apply ];
-    choose f hf using hP_int;
-    exact ⟨ Matrix.det ( Matrix.of fun i j => f i j ), by simp +decide [ hf, Matrix.det_apply' ] ⟩;
-  by_cases hd0 : d = 0 <;> simp_all +decide [ abs_mul ];
-  · exact absurd hP (Algebra.discr_not_zero_of_basis ℚ b);
-  · exact le_mul_of_one_le_left ( abs_nonneg _ ) ( mod_cast sq_pos_of_ne_zero hd0 )
+    |(NumberField.discr K : ℚ)| ≤ |Algebra.discr ℚ (b : ι → K)| :=
+  TauCeti.NumberField.abs_discr_le_of_basis_isIntegral b hb
 
 variable (g : ℕ)
 
@@ -156,7 +126,7 @@ theorem mqGen_isIntegral (k : Option (Fin g)) : IsIntegral ℤ (mqGen g k) := by
       norm_cast
 
 theorem mqB_isIntegral (S : Finset (Option (Fin g))) : IsIntegral ℤ (mqB g S) := by
-  convert IsIntegral.prod _ fun k hk => mqGen_isIntegral g k
+  convert! IsIntegral.prod _ fun k hk => mqGen_isIntegral g k
 
 theorem mqRS_ne_zero (S : Finset (Option (Fin g))) : mqRS g S ≠ 0 := by
   refine' Finset.prod_ne_zero_iff.mpr _;
@@ -200,9 +170,11 @@ theorem mqB_notMem_range {U : Finset (Option (Fin g))} (hU : U.Nonempty) :
   intro h
   obtain ⟨q, hq⟩ := h
   have hq_sq : q^2 = mqRS g U := by
-    apply_fun ( algebraMap ℚ ( Kf g ) ) at * ; simp_all +decide;
-    · convert mqB_sq g U;
-    · exact RingHom.injective _
+    apply_fun ( algebraMap ℚ ( Kf g ) ) at * ; simp_all +decide
+    all_goals first
+      | exact RingHom.injective _
+      | (convert! mqB_sq g U)
+      | (funext q; simp)
   exact (by
   exact mqRS_not_isSquare g hU ⟨ q, by linarith ⟩)
 
@@ -280,11 +252,11 @@ theorem mq_Kf_finrank_le : finrank ℚ (Kf g) ≤ 2 ^ (g + 1) := by
           · rw [ Polynomial.Monic, Polynomial.leadingCoeff_X_pow_sub_C ] ; norm_num;
           · cases a <;> simp +decide [ mqGenC, mqSq ];
             norm_cast ; norm_num [ Real.sq_sqrt ( Nat.cast_nonneg _ ) ];
-      convert h_tower.trans ( Nat.mul_le_mul ih h_root ) using 1;
+      convert! h_tower.trans ( Nat.mul_le_mul ih h_root ) using 1;
       · rw [ Finset.image_insert, Finset.union_comm ];
         congr! 2;
       · rw [ Finset.card_insert_of_notMem ha, pow_succ ];
-  convert h_finite Finset.univ;
+  convert! h_finite Finset.univ;
   · refine' le_antisymm _ _;
     · simp +decide [ Kf ];
       rintro x ( rfl | ⟨ j, hj, rfl ⟩ ) <;> [ exact IntermediateField.subset_adjoin ℚ _ ⟨ none, rfl ⟩ ; exact IntermediateField.subset_adjoin ℚ _ ⟨ some ⟨ j, hj ⟩, rfl ⟩ ];
@@ -397,7 +369,7 @@ theorem q3_log_sum_le : ∃ C : ℝ, 0 ≤ C ∧
           have h_log_bound : Real.log (q3 j) ≤ Real.log ((j + 2) ^ 2) := by
             exact Real.log_le_log ( Nat.cast_pos.mpr ( Nat.Prime.pos ( q3_spec j |>.1 ) ) ) ( hN j ( Finset.mem_Ico.mp hj |>.1 ) );
           exact h_log_bound.trans ( by rw [ Real.log_pow ] ; norm_num; exact Real.log_le_log ( by positivity ) ( by norm_cast; linarith [ Finset.mem_Ico.mp hj ] ) );
-        convert Finset.sum_le_sum h_tail ; norm_num [ Nat.cast_sub ( le_of_not_ge hg ) ] ; ring;
+        convert! Finset.sum_le_sum h_tail ; norm_num [ Nat.cast_sub ( le_of_not_ge hg ) ] ; ring;
       -- For the head $j < N$, we have $\log(q3 j) \le \log(q3 j)$.
       have h_head : ∑ j ∈ Finset.range N, Real.log (q3 j) ≤ (∑ j ∈ Finset.range N, Real.log (q3 j)) / Real.log 2 * (g + 1) * Real.log (g + 2) := by
         rw [ div_mul_eq_mul_div, div_mul_eq_mul_div, le_div_iff₀ ( by positivity ) ];

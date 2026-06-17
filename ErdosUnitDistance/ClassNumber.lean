@@ -4,6 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import Mathlib
+import TauCeti.NumberTheory.EffectiveBounds.IdealCount
+import TauCeti.NumberTheory.EffectiveBounds.ClassNumber
+import TauCeti.NumberTheory.EffectiveBounds.UnitSquares
 
 /-!
 # Ideal counting, class numbers and unit square classes
@@ -184,7 +187,7 @@ theorem primeCoord_lt {P : Ideal (𝓞 F)} (hP : P.IsPrime) (hP0 : P ≠ ⊥) :
     primeCoord F P < Module.finrank ℚ F := by
   refine' lt_of_lt_of_le _ _;
   exact ( IsDedekindDomain.primesOverFinset ( Ideal.under ℤ P ) ( 𝓞 F ) ).card;
-  · convert List.idxOf_lt_length_iff.mpr _;
+  · convert! List.idxOf_lt_length_iff.mpr _;
     · simp +decide;
     · infer_instance;
     · exact Finset.mem_toList.mpr ( mem_primesOverFinset_under F hP hP0 );
@@ -221,7 +224,7 @@ theorem prime_eq_of_coord_eq {P Q : Ideal (𝓞 F)} (hP : P.IsPrime) (hP0 : P �
   have h_eq : List.Nodup (IsDedekindDomain.primesOverFinset (Ideal.under ℤ P) (𝓞 F)).toList := by
     exact Finset.nodup_toList _;
   have h_eq : List.idxOf P (IsDedekindDomain.primesOverFinset (Ideal.under ℤ P) (𝓞 F)).toList = List.idxOf Q (IsDedekindDomain.primesOverFinset (Ideal.under ℤ P) (𝓞 F)).toList := by
-    convert hc using 1;
+    convert! hc using 1;
     unfold primeCoord;
     rw [ under_eq_of_ratBelow_eq F hP hP0 hQ hQ0 hr ];
   have h_eq : ∀ {l : List (Ideal (𝓞 F))}, List.Nodup l → ∀ {x y : Ideal (𝓞 F)}, x ∈ l → y ∈ l → List.idxOf x l = List.idxOf y l → x = y := by
@@ -271,8 +274,8 @@ theorem prod_encodeIdeal_le_absNorm {I : Ideal (𝓞 F)} (hI : I ≠ ⊥) :
   have h_prod_le : ∏ P ∈ (normalizedFactors I).toFinset, (Ideal.absNorm P) ^ ((normalizedFactors I).count P) ≤ Ideal.absNorm I := by
     have h_prod_le : ∏ P ∈ (normalizedFactors I).toFinset, (Ideal.absNorm P) ^ ((normalizedFactors I).count P) = Ideal.absNorm (∏ P ∈ (normalizedFactors I).toFinset, P ^ ((normalizedFactors I).count P)) := by
       induction' ( normalizedFactors I ).toFinset using Finset.induction <;> simp_all +decide [ Finset.prod_insert ];
-    convert h_prod_le.le using 2;
-    convert ( Ideal.prod_normalizedFactors_eq_self hI ) |> Eq.symm;
+    convert! h_prod_le.le using 2;
+    convert! ( Ideal.prod_normalizedFactors_eq_self hI ) |> Eq.symm;
     rw [ Finset.prod_multiset_count ];
   refine le_trans ?_ h_prod_le
   gcongr with Q hQ
@@ -391,17 +394,9 @@ theorem card_ideal_absNorm_le (F : Type) [Field F] [NumberField F]
     {X : ℝ} (hX : 1 ≤ X) :
     {I : Ideal (𝓞 F) | I ≠ ⊥ ∧ (Ideal.absNorm I : ℝ) ≤ X}.Finite ∧
       (({I : Ideal (𝓞 F) | I ≠ ⊥ ∧ (Ideal.absNorm I : ℝ) ≤ X}.ncard : ℝ)) ≤
-        X ^ 2 * 2 ^ Module.finrank ℚ F := by
-  refine ⟨?_, ?_⟩
-  · apply Set.Finite.subset (Ideal.finite_setOf_absNorm_le ⌊X⌋₊)
-    rintro I ⟨-, hI⟩
-    exact Nat.le_floor hI
-  · calc ((({I : Ideal (𝓞 F) | I ≠ ⊥ ∧ (Ideal.absNorm I : ℝ) ≤ X}).ncard : ℝ))
-        ≤ ((prodLeTuples (Module.finrank ℚ F) X).ncard : ℝ) := by
-          exact_mod_cast ideal_ncard_le_prodLeTuples_ncard F (X := X)
-      _ ≤ X ^ 2 * 2 ^ Module.finrank ℚ F := prodLeTuples_ncard_le _ hX
+        X ^ 2 * 2 ^ Module.finrank ℚ F :=
+  TauCeti.NumberField.card_ideal_absNorm_le F hX
 
-open NumberField in
 /-- [medium given `card_ideal_absNorm_le`] **Class number bound.**
 `h_F ≤ |d_F| · 4^(deg F)`.  Sketch: by Mathlib's Minkowski-bound theorem
 `NumberField.exists_ideal_in_class_of_norm_le`, every ideal class contains
@@ -410,46 +405,9 @@ classes inject into ideals of norm `≤ √|d_F|`, of which there are at most
 `|d_F| · 2ⁿ` by `card_ideal_absNorm_le`. -/
 theorem classNumber_le_bound (F : Type) [Field F] [NumberField F] :
     (NumberField.classNumber F : ℝ) ≤
-      |(NumberField.discr F : ℝ)| * 4 ^ Module.finrank ℚ F := by
-  have := @NumberField.exists_ideal_in_class_of_norm_le F _ _;
-  choose f hf using this;
-  have h_card : (Set.ncard (Set.image (fun C => (f C : Ideal (𝓞 F))) Set.univ)) ≤ (4 / Real.pi) ^ (2 * InfinitePlace.nrComplexPlaces F) * ((Module.finrank ℚ F).factorial / (Module.finrank ℚ F) ^ Module.finrank ℚ F) ^ 2 * |(discr F : ℝ)| * 2 ^ Module.finrank ℚ F := by
-    have h_card : (Set.ncard {I : Ideal (𝓞 F) | I ≠ ⊥ ∧ (Ideal.absNorm I : ℝ) ≤ (4 / Real.pi) ^ InfinitePlace.nrComplexPlaces F * ((Module.finrank ℚ F).factorial / (Module.finrank ℚ F) ^ Module.finrank ℚ F * Real.sqrt |(discr F : ℝ)|)}) ≤ (4 / Real.pi) ^ (2 * InfinitePlace.nrComplexPlaces F) * ((Module.finrank ℚ F).factorial / (Module.finrank ℚ F) ^ Module.finrank ℚ F) ^ 2 * |(discr F : ℝ)| * 2 ^ Module.finrank ℚ F := by
-      convert card_ideal_absNorm_le F _ |>.2 using 1;
-      · ring_nf; norm_num [ Real.sq_sqrt <| abs_nonneg _ ];
-      · refine' le_trans _ ( hf 1 |>.2 );
-        exact_mod_cast Nat.one_le_iff_ne_zero.mpr ( Ideal.absNorm_ne_zero_of_nonZeroDivisors _ );
-    refine le_trans ?_ h_card;
-    gcongr;
-    · convert card_ideal_absNorm_le F _ |>.1 using 1;
-      refine' le_trans _ ( hf 1 |>.2 );
-      exact_mod_cast Nat.one_le_iff_ne_zero.mpr ( Ideal.absNorm_ne_zero_of_nonZeroDivisors _ );
-    · simp +zetaDelta at *;
-      exact Set.range_subset_iff.mpr fun C => ⟨ by intro h; simpa [ h ] using f C |>.2, hf C |>.2 ⟩;
-  refine le_trans ?_ ( h_card.trans ?_ );
-  · rw [ Set.ncard_image_of_injective _ fun x y hxy => _, Set.ncard_univ ];
-    · norm_num [ classNumber ];
-    · intro x y hxy; have := hf x; have := hf y; aesop;
-  · -- Simplify the right-hand side of the inequality.
-    suffices h_simp : (4 / Real.pi) ^ (2 * InfinitePlace.nrComplexPlaces F) * ((Module.finrank ℚ F).factorial / (Module.finrank ℚ F) ^ Module.finrank ℚ F) ^ 2 * 2 ^ Module.finrank ℚ F ≤ 4 ^ Module.finrank ℚ F by
-      convert mul_le_mul_of_nonneg_left h_simp ( abs_nonneg ( discr F : ℝ ) ) using 1 ; ring;
-    refine' le_trans ( mul_le_mul_of_nonneg_right ( mul_le_of_le_one_right ( by positivity ) _ ) ( by positivity ) ) _;
-    · exact pow_le_one₀ ( by positivity ) ( div_le_one_of_le₀ ( mod_cast Nat.recOn ( Module.finrank ℚ F ) ( by norm_num ) fun n ihn => by rw [ Nat.factorial_succ, pow_succ' ] ; exact le_trans ( Nat.mul_le_mul_left _ ihn ) ( by gcongr ; linarith ) ) ( by positivity ) );
-    · refine' le_trans ( mul_le_mul_of_nonneg_right ( pow_le_pow_left₀ ( by positivity ) ( show ( 4 : ℝ ) / Real.pi ≤ 2 by rw [ div_le_iff₀ ] <;> linarith [ Real.pi_gt_three ] ) _ ) ( by positivity ) ) _;
-      rw [ show ( 4 : ℝ ) = 2 ^ 2 by norm_num, ← pow_mul ];
-      rw [ ← pow_add ];
-      gcongr <;> norm_num;
-      have := NumberField.InfinitePlace.card_add_two_mul_card_eq_rank F; linarith;
+      |(NumberField.discr F : ℝ)| * 4 ^ Module.finrank ℚ F :=
+  TauCeti.NumberField.classNumber_le_bound F
 
-/-! ## Class number and unit bounds (abstract) -/
-
-/-
-Abstract bound: in a commutative group generated by a finite set `S`, the
-subgroup of squares has index at most `2 ^ S.card`.  Sketch: the quotient
-`Q := G ⧸ (powMonoidHom 2).range` is an elementary abelian `2`-group (every
-element squares to one), hence a `ZMod 2`-vector space spanned by the image of
-`S`, so `Nat.card Q = 2 ^ finrank (ZMod 2) Q ≤ 2 ^ S.card`.
--/
 lemma index_powMonoidHom_two_le_of_closure {G : Type*} [CommGroup G]
     {S : Finset G} (hS : Subgroup.closure (S : Set G) = ⊤) :
     (MonoidHom.range (powMonoidHom 2 : G →* G)).index ≤ 2 ^ S.card := by
@@ -492,24 +450,10 @@ should reduce to standard `Module`/`ZMod` lemmas. -/
 theorem units_sq_index_le (F : Type) [Field F] [NumberField F] :
     (MonoidHom.range (powMonoidHom 2 : (𝓞 F)ˣ →* (𝓞 F)ˣ)).index ≤
       2 ^ Module.finrank ℚ F := by
-  refine' le_trans _ ( pow_le_pow_right₀ ( by norm_num ) _ );
-  convert Erdos.index_powMonoidHom_two_le_of_closure _;
-  exact Finset.image ( fun i => NumberField.Units.fundSystem F i ) Finset.univ ∪ { ( Classical.choose ( IsCyclic.exists_generator ( α := NumberField.Units.torsion F ) ) : NumberField.Units.torsion F ) |> Subtype.val };
-  · convert NumberField.Units.closure_fundSystem_sup_torsion_eq_top F using 1;
-    refine' le_antisymm _ _ <;> simp +decide [ Subgroup.closure_le, Set.insert_subset_iff ];
-    · exact ⟨ Subgroup.mem_sup_right <| Classical.choose_spec ( IsCyclic.exists_generator ( α := NumberField.Units.torsion F ) ) |> fun h => by aesop, Set.range_subset_iff.mpr fun i => Subgroup.mem_sup_left <| Subgroup.subset_closure <| Set.mem_range_self i ⟩;
-    · refine' ⟨ Set.range_subset_iff.mpr fun i => Subgroup.subset_closure <| Set.mem_insert_of_mem _ <| Set.mem_range_self _, _ ⟩;
-      have := Classical.choose_spec ( IsCyclic.exists_generator ( α := Units.torsion F ) );
-      intro x hx; specialize this ⟨ x, hx ⟩ ; obtain ⟨ n, hn ⟩ := this; simp_all +decide [ Subgroup.mem_closure ] ;
-      intro K hK; replace hn := congr_arg Subtype.val hn; aesop;
-  · refine' le_trans ( Finset.card_union_le _ _ ) _ ; norm_num;
-    refine' lt_of_le_of_lt ( Finset.card_image_le ) _;
-    rw [Finset.card_univ, Fintype.card_fin]
-    have h2 := NumberField.InfinitePlace.card_add_two_mul_card_eq_rank F
-    have h3 : 0 < Fintype.card (NumberField.InfinitePlace F) :=
-      Fintype.card_pos_iff.mpr ⟨Classical.arbitrary _⟩
-    have h4 := NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces F
-    simp only [NumberField.Units.rank]
-    omega
-
-end Erdos
+  rw [show (MonoidHom.range (powMonoidHom 2 : (𝓞 F)ˣ →* (𝓞 F)ˣ)) = Subgroup.square (𝓞 F)ˣ from by
+    ext g
+    rw [MonoidHom.mem_range, Subgroup.mem_square]
+    constructor
+    · rintro ⟨h, rfl⟩; exact ⟨h, by rw [powMonoidHom_apply, sq]⟩
+    · rintro ⟨h, rfl⟩; exact ⟨h, by rw [powMonoidHom_apply, sq]⟩]
+  exact TauCeti.NumberField.units_sq_index_le F

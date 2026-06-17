@@ -98,11 +98,11 @@ number of places is `finrank/2 ≤ 2^g`. -/
 theorem Kf_card_le (g : ℕ) :
     Fintype.card (NumberField.InfinitePlace (Kf g)) ≤ 2 ^ g := by
   have h_card : Fintype.card (InfinitePlace (Kf g)) * 2 ≤ Module.finrank ℚ (Kf g) := by
-    convert NumberField.IsTotallyComplex.finrank ( Kf g ) |> le_of_eq using 1;
+    convert! NumberField.IsTotallyComplex.finrank ( Kf g ) |> le_of_eq using 1;
     · have := NumberField.InfinitePlace.card_eq_nrRealPlaces_add_nrComplexPlaces ( Kf g );
-      convert NumberField.IsTotallyComplex.finrank ( Kf g ) |> Eq.symm using 1;
+      convert! NumberField.IsTotallyComplex.finrank ( Kf g ) |> Eq.symm using 1;
       rw [ this, mul_comm, NumberField.IsTotallyComplex.nrRealPlaces_eq_zero ] ; norm_num;
-    · convert NumberField.IsTotallyComplex.finrank ( Kf g ) using 1;
+    · convert! NumberField.IsTotallyComplex.finrank ( Kf g ) using 1;
   linarith [ Kf_finrank_le g, pow_succ' 2 g ]
 
 /-- Coordinate formula for the Minkowski map. -/
@@ -162,8 +162,8 @@ theorem mink_sep_aux (g t : ℕ) (b : Ideal (𝓞 (Kf g))) (μ : Kf g) (y : 𝓞
     have h_contradiction : (∏ w : InfinitePlace (Kf g), (w (algebraMap (𝓞 (Kf g)) (Kf g) y)) ^ 2) ≤ (ρ ^ 2) ^ (Fintype.card (InfinitePlace (Kf g))) * (∏ w : InfinitePlace (Kf g), (w μ)) := by
       have h_prod_le : ∀ w : InfinitePlace (Kf g), (w (algebraMap (𝓞 (Kf g)) (Kf g) y)) ^ 2 ≤ (ρ * Real.sqrt (w μ)) ^ 2 := by
         exact fun w => by simpa only [ ← norm_mink_apply ] using pow_le_pow_left₀ ( by positivity ) ( hkey w ) 2;
-      convert Finset.prod_le_prod ( fun _ _ => sq_nonneg _ ) fun w _ => h_prod_le w using 1 ; norm_num [ mul_pow, Finset.prod_mul_distrib ];
-    convert le_trans ( absNorm_le_prod_places g b y hy hy0 ) h_contradiction using 1 ; ring;
+      convert! Finset.prod_le_prod ( fun _ _ => sq_nonneg _ ) fun w _ => h_prod_le w using 1 ; norm_num [ mul_pow, Finset.prod_mul_distrib ];
+    convert! le_trans ( absNorm_le_prod_places g b y hy hy0 ) h_contradiction using 1 ; ring;
   by_cases hb : Ideal.absNorm b = 0 <;> simp_all +decide;
   · rw [ Ideal.absNorm_eq_zero_iff ] at hb ; aesop;
   · nlinarith [ show 0 < ( Ideal.absNorm b : ℝ ) by positivity ]

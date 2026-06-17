@@ -3,7 +3,18 @@ defaultTargets = ["ErdosUnitDistance"]
 
 [[require]]
 name = "PrimeNumberTheoremAnd"
-git = "https://github.com/AlexKontorovich/PrimeNumberTheoremAnd.git"
+git = "https://github.com/kim-em/PrimeNumberTheoremAnd.git"
+rev = "e025424629cafbfa6ad98eee5fb4f22e1ad6086b"
+
+[[require]]
+name = "TauCeti"
+git = "https://github.com/FormalFrontier/TauCeti"
+rev = "221bb56a017bb794421eac4fa543d7a5e85add75"
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "0be66d77ba290828a5260d883ace636f56bce89a"
 
 [[lean_lib]]
 name = "ErdosUnitDistance"

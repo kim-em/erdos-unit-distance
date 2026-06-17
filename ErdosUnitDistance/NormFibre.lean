@@ -31,7 +31,7 @@ theorem absNorm_map_conj (g : ℕ) (A : Ideal (𝓞 (Kf g))) :
     intro a₁ a₂; rw [ ← map_sub ] ; rw [ Ideal.mem_map_iff_of_surjective ] ;
     · exact ⟨ fun h => ⟨ _, h, rfl ⟩, by rintro ⟨ x, hx, hx' ⟩ ; exact ( ringOfIntegersComplexConj ( Kf g ) ).injective hx' ▸ hx ⟩;
     · exact AlgEquiv.surjective _;
-  convert h_card.symm using 1
+  convert! h_card.symm using 1
 
 /-
 At every infinite place, `z · conj z` has value `w(z)^2`.
@@ -139,7 +139,7 @@ theorem units_sq_quot_finite (F : Type) [Field F] [NumberField F] :
         intro x; specialize hs x ( Submodule.toAddSubgroup ( Submodule.span ( ZMod 2 ) ( s : Set G ) ) ) ; simp_all +decide [ Set.subset_def, Submodule.mem_span ] ;
       lia;
     exact Finite.of_equiv _ ( ( Module.finBasis ( ZMod 2 ) G ).equivFun.symm.toEquiv );
-  convert h_add_group ( Additive ( ( 𝓞 F ) ˣ ⧸ ( powMonoidHom 2 : ( 𝓞 F ) ˣ →* ( 𝓞 F ) ˣ ).range ) ) _;
+  convert! h_add_group ( Additive ( ( 𝓞 F ) ˣ ⧸ ( powMonoidHom 2 : ( 𝓞 F ) ˣ →* ( 𝓞 F ) ˣ ).range ) ) _;
   rintro ⟨ a ⟩ ; exact QuotientGroup.eq.mpr ( by aesop ) ;
 
 /-
@@ -155,7 +155,7 @@ theorem units_square_pigeonhole (g : ℕ) {α : Type*} (F₁ : Finset α)
     have h_finite : Fintype ((𝓞 (↥(maximalRealSubfield (Kf g))))ˣ ⧸ MonoidHom.range (powMonoidHom 2 : (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ →* (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ)) := by
       exact Fintype.ofFinite _;
     have h_finite : Fintype.card ((𝓞 (↥(maximalRealSubfield (Kf g))))ˣ ⧸ MonoidHom.range (powMonoidHom 2 : (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ →* (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ)) ≤ 2 ^ 2 ^ g := by
-      convert units_sq_index_le ( ↥ ( maximalRealSubfield ( Kf g ) ) ) |> le_trans <| pow_le_pow_right₀ ( by decide ) <| Kf_maximalReal_finrank g |> le_of_eq;
+      convert! units_sq_index_le ( ↥ ( maximalRealSubfield ( Kf g ) ) ) |> le_trans <| pow_le_pow_right₀ ( by decide ) <| Kf_maximalReal_finrank g |> le_of_eq;
       rw [ Subgroup.index_eq_card ];
       rw [ Nat.card_eq_fintype_card ];
     have := @exists_fiber_card_ge;
@@ -186,12 +186,12 @@ theorem descent_unit (g : ℕ) (a b : 𝓞 (Kf g))
   have h_fixed : (complexConj (Kf g)) (u : Kf g) = (u : Kf g) := by
     have h_conj_u : (ringOfIntegersComplexConj (Kf g)) (u : (𝓞 (Kf g))) = (u : (𝓞 (Kf g))) := by
       simp_all +decide [ ringOfIntegersComplexConj ];
-    convert congr_arg ( algebraMap ( 𝓞 ( Kf g ) ) ( Kf g ) ) h_conj_u using 1;
+    convert! congr_arg ( algebraMap ( 𝓞 ( Kf g ) ) ( Kf g ) ) h_conj_u using 1;
   have := @Units.complexConj_eq_self_iff ( Kf g );
   obtain ⟨ v, hv ⟩ := this u |>.1 h_fixed;
   use v;
   simp +decide [RingOfIntegers.ext_iff ];
-  convert congr_arg ( fun x : Kf g => x * b ) hv using 1;
+  convert! congr_arg ( fun x : Kf g => x * b ) hv using 1;
   exact congr_arg ( algebraMap ( 𝓞 ( Kf g ) ) ( Kf g ) ) hu
 
 /-- Conjugation is involutive on the ring of integers. -/
@@ -268,7 +268,7 @@ theorem stage1 (g : ℕ) (F : Finset (Ideal (𝓞 (Kf g)))) (hF : ∀ A ∈ F, A
   simp +zetaDelta at *;
   refine' ⟨ _, _, _ ⟩;
   · exact fun h => by simpa [ h ] using b'.2;
-  · convert hc using 1;
+  · convert! hc using 1;
   · have h_principal : ∀ A ∈ F, (if h : A = ⊥ then 1 else ClassGroup.mk0 ⟨A, mem_nonZeroDivisors_of_ne_zero h⟩) = c → ∃ a : 𝓞 (Kf g), A * b' = Ideal.span {a} ∧ a ≠ 0 := by
       intro A hA hA'; split_ifs at hA' ; simp_all +decide  ;
       have h_principal : ClassGroup.mk0 (⟨A, mem_nonZeroDivisors_of_ne_zero ‹_›⟩ * b') = 1 := by

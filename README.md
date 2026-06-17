@@ -24,10 +24,14 @@ formalized here.)
 
 ## Layout
 
-A single Lake project requiring Mathlib (via the
-[PrimeNumberTheoremAnd](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd)
-pin, currently Lean v4.30.0) and PrimeNumberTheoremAnd itself, whose
-`chebyshev_asymptotic_pnt` (sorry-free) is the only analytic input.
+A single Lake project on **Lean v4.31.0-rc2 / Mathlib master**, with three git
+dependencies:
+
+- **[Mathlib](https://github.com/leanprover-community/mathlib4)**;
+- **[PrimeNumberTheoremAnd](https://github.com/AlexKontorovich/PrimeNumberTheoremAnd)**,
+  whose sorry-free `chebyshev_asymptotic_pnt` is the only *analytic* input;
+- **[TauCeti](https://github.com/FormalFrontier/TauCeti)**, which supplies the
+  reusable *algebraic* number theory (see below).
 
 The library is organised by subject:
 
@@ -36,13 +40,28 @@ The library is organised by subject:
 | `Counting` | unit-distance pair counts; transport `ℂ ≃ ℝ²` |
 | `GeometricCore` | grid-pigeonhole packing/doubling in polydiscs; the translation argument |
 | `PrimesMod4` | the `j`-th primes `≡ 1, 3 (mod 4)`; polynomial growth from PNT-in-AP; the modulus `m t` |
-| `MultiquadraticField` | `K_g = ℚ(i, √q₀, …, √q_{g-1})`: degree `2^(g+1)` by square-class descent; CM structure |
-| `ClassNumber` | ideal counting by injective encoding; `h ≤ \|d\|·4^deg`; unit square classes |
-| `Discriminant` | diagonal trace form on subset products; `log h_{K_g} = O(2^g·g log g)` |
-| `IdealFamily` | unramifiedness, inertia `≤ 2`, conjugation freeness; the `2^(t·2^(g-1))` ideals over `m` |
-| `NormFibre` | the two pigeonholes; the fibre `Z = {z ∈ 𝔟 : z·z∗ = μ}` |
+| `MultiquadraticField` | `K_g = ℚ(i, √q₀, …, √q_{g-1})`: degree `2^(g+1)` via TauCeti's square-class descent; CM structure |
+| `Discriminant` | the concrete diagonal trace form for `K_g`; `log h_{K_g} = O(2^g·g log g)` via TauCeti's effective class-number and discriminant bounds |
+| `IdealFamily` | unramifiedness, inertia `≤ 2`, conjugation freeness for `K_g`; the `2^(t·2^(g-1))` ideals over `m` via TauCeti's conjugate-transversal family |
+| `NormFibre` | the two pigeonholes; the fibre `Z = {z ∈ 𝔟 : z·z∗ = μ}`; unit-square index from TauCeti |
 | `PointCount` | Minkowski embedding, separation, the planar point set |
 | `Main` | the counting assembly and the theorem |
+
+### What comes from TauCeti
+
+The reusable number theory this proof needs has been upstreamed into
+[TauCeti](https://github.com/FormalFrontier/TauCeti), so this repository now holds only
+the concrete `K_g` construction and the disproof assembly.  The general results imported
+and applied here are:
+
+- effective ideal-count, class-number, and unit-square-index bounds
+  (`TauCeti.NumberField.classNumber_le_bound`, `units_sq_index_le`) and the discriminant
+  comparison `abs_discr_le_of_basis_isIntegral`;
+- the conjugate-transversal ideal family
+  (`TauCeti.DedekindDomain.exists_transversal_family`);
+- multiquadratic square-class descent (`TauCeti.Multiquadratic.sqrtTower`,
+  `squareClass_of_sqrt_mem`) and the quadratic intermediate-field lemma
+  `TauCeti.IntermediateField.mem_sup_adjoin_sq`.
 
 Verify with:
 
@@ -85,7 +104,10 @@ proof through the Lean kernel.
    conjugation acting freely on primes, and a transversal count);
    class-group and unit-square-class pigeonholes then produce a norm
    fibre `Z = {z ∈ 𝔟 : z z̄ = μ}` of exponential size, all of one
-   archimedean modulus.
+   archimedean modulus.  The general tools here — square-class descent,
+   the effective ideal-count / class-number / discriminant / unit-square
+   bounds, and the conjugate-transversal count — come from TauCeti and are
+   instantiated at the concrete `K_g` and `m`.
 3. **Assembly** — explicit-constant bookkeeping: `log(ν/n) ≫ t·2^g`,
    `log n ≪ 2^g·t log t`, `log log n ≍ g`; choosing `g ≈ C log t` and `t`
    large refutes the bound for the given `C`.
@@ -95,4 +117,5 @@ proof through the Lean kernel.
 Formalized 2026-06-11 (one working day) by an orchestrated ensemble —
 Claude (Anthropic), Aristotle (Harmonic), and Codex (OpenAI) — directed
 from a single Claude Code session.  See `formalization.yaml` for details
-and resource usage.
+and resource usage.  Migrated onto TauCeti and bumped to Lean v4.31.0-rc2
+/ Mathlib master on 2026-06-17.

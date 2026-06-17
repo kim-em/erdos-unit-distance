@@ -10,7 +10,7 @@ result:
     bound ν(n) ≤ n^(1 + C/log log n) for an absolute constant C.)
   axioms: [propext, Classical.choice, Quot.sound]
   sorries: 0
-  lean_toolchain: leanprover/lean4:v4.30.0   # PrimeNumberTheoremAnd's pin
+  lean_toolchain: leanprover/lean4:v4.31.0-rc2   # rc2 / Mathlib master (since 2026-06-17)
   note: >
     Strictly weaker than the lean-eval problem
     erdos_unit_distance_conjecture_false (fixed power gain n^(1+δ),
@@ -26,6 +26,8 @@ artifacts:
 dates:
   formalized: 2026-06-11
   wall_clock: about 9.5 hours, single orchestrating session
+  migrated: 2026-06-17   # bumped to Lean v4.31.0-rc2 / Mathlib master; the general
+                         # number theory upstreamed into TauCeti (see sources below)
 
 sources:
   - kind: informal_proof
@@ -52,6 +54,14 @@ sources:
     title: PrimeNumberTheoremAnd
     url: https://github.com/AlexKontorovich/PrimeNumberTheoremAnd
     note: chebyshev_asymptotic_pnt (PNT in arithmetic progressions), sorry-free
+  - kind: dependency
+    title: TauCeti
+    url: https://github.com/FormalFrontier/TauCeti
+    note: >
+      the reusable algebraic number theory: effective ideal-count /
+      class-number / discriminant / unit-square bounds, the
+      conjugate-transversal ideal family, and multiquadratic square-class
+      descent (upstreamed from this repository on 2026-06-17)
   - kind: dependency
     title: Mathlib
     url: https://github.com/leanprover-community/mathlib4
@@ -112,4 +122,9 @@ attribution_note: >
   (each integration commit names the prover).  All statements were
   designed and all results verified/ported/audited by the directing
   session; failures and partial results are recorded honestly in the
-  commit history.
+  commit history.  The prover highlights above record what was proved on
+  2026-06-11; several of those general lemmas (classNumber_le_bound,
+  card_ideal_absNorm_le, the discriminant and unit-square bounds, the
+  transversal count, and the square-class descent) were subsequently
+  upstreamed into TauCeti and are no longer in this repository, which now
+  imports them.

@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import ErdosUnitDistance.MultiquadraticField
-import ErdosUnitDistance.ClassNumber
+import TauCeti.NumberTheory.EffectiveBounds.ClassNumber
 import TauCeti.NumberTheory.EffectiveBounds.Discriminant
 
 /-!
@@ -54,18 +54,6 @@ theorem trace_eq_zero_of_sq_ratCast {K : Type*} [Field K] [NumberField K] {x : K
       (by rw [Polynomial.natDegree_X_pow_sub_C]; norm_num)]
     simp [Polynomial.coeff_X_pow]
   rw [hnc]; simp
-
-/-
-Generic fact: if `b` is a `ℚ`-basis of a number field consisting of
-algebraic integers, then `|d_K| ≤ |discr b|`.  (The discriminant of any
-basis of integers equals `(index)² · d_K`, and the index is a nonzero
-integer.)
--/
-theorem abs_discr_le_of_basis_isIntegral {K : Type*} [Field K] [NumberField K]
-    {ι : Type*} [Fintype ι] [DecidableEq ι] (b : Basis ι ℚ K)
-    (hb : ∀ i, IsIntegral ℤ (b i)) :
-    |(NumberField.discr K : ℚ)| ≤ |Algebra.discr ℚ (b : ι → K)| :=
-  TauCeti.NumberField.abs_discr_le_of_basis_isIntegral b hb
 
 variable (g : ℕ)
 
@@ -333,7 +321,7 @@ theorem Kf_discr_le (g : ℕ) :
     rw [show bas i = mqB g i from congrFun hbas i]
     exact mqB_isIntegral g i
   have h1 : |(NumberField.discr (Kf g) : ℚ)| ≤ |Algebra.discr ℚ (mqB g)| := by
-    have h := abs_discr_le_of_basis_isIntegral bas hint
+    have h := TauCeti.NumberField.abs_discr_le_of_basis_isIntegral bas hint
     rwa [hbas] at h
   have h2 := abs_discr_mqB_le g
   have h3 : |(NumberField.discr (Kf g) : ℚ)| ≤
@@ -420,7 +408,7 @@ theorem log_classNumber_le_log_discr : ∃ a b : ℝ, 0 ≤ a ∧
   · intro g
     have h1 : Real.log (NumberField.classNumber (Kf g)) ≤ Real.log (|NumberField.discr (Kf g)|) + Module.finrank ℚ (Kf g) * Real.log 4 := by
       have h1 : (NumberField.classNumber (Kf g) : ℝ) ≤ |(NumberField.discr (Kf g) : ℝ)| * 4 ^ Module.finrank ℚ (Kf g) := by
-        convert classNumber_le_bound ( Kf g ) using 1;
+        convert TauCeti.NumberField.classNumber_le_bound ( Kf g ) using 1;
       convert Real.log_le_log ( Nat.cast_pos.mpr <| NumberField.classNumber_pos _ ) h1 using 1;
       rw [ Real.log_mul ( by exact ne_of_gt <| abs_pos.mpr <| mod_cast NumberField.discr_ne_zero _ ) ( by positivity ), Real.log_pow ];
     have h2 : (4 / 9 : ℝ) * (3 * Real.pi / 4) ^ Module.finrank ℚ (Kf g) ≤ |NumberField.discr (Kf g)| := by

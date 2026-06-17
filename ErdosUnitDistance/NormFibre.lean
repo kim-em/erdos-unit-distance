@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import ErdosUnitDistance.IdealFamily
+import TauCeti.NumberTheory.EffectiveBounds.UnitSquares
 
 /-!
 # The norm fibre
@@ -155,9 +156,15 @@ theorem units_square_pigeonhole (g : ℕ) {α : Type*} (F₁ : Finset α)
     have h_finite : Fintype ((𝓞 (↥(maximalRealSubfield (Kf g))))ˣ ⧸ MonoidHom.range (powMonoidHom 2 : (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ →* (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ)) := by
       exact Fintype.ofFinite _;
     have h_finite : Fintype.card ((𝓞 (↥(maximalRealSubfield (Kf g))))ˣ ⧸ MonoidHom.range (powMonoidHom 2 : (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ →* (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ)) ≤ 2 ^ 2 ^ g := by
-      convert! units_sq_index_le ( ↥ ( maximalRealSubfield ( Kf g ) ) ) |> le_trans <| pow_le_pow_right₀ ( by decide ) <| Kf_maximalReal_finrank g |> le_of_eq;
-      rw [ Subgroup.index_eq_card ];
-      rw [ Nat.card_eq_fintype_card ];
+      have hsq : MonoidHom.range
+            (powMonoidHom 2 : (𝓞 (↥(maximalRealSubfield (Kf g))))ˣ →* _)
+          = Subgroup.square ((𝓞 (↥(maximalRealSubfield (Kf g))))ˣ) := by
+        ext x
+        rw [MonoidHom.mem_range, Subgroup.mem_square]
+        constructor <;> rintro ⟨h, rfl⟩ <;> exact ⟨h, by rw [powMonoidHom_apply, sq]⟩
+      rw [← Nat.card_eq_fintype_card, ← Subgroup.index_eq_card, hsq]
+      exact (TauCeti.NumberField.units_sq_index_le (↥(maximalRealSubfield (Kf g)))).trans
+        (pow_le_pow_right₀ (by decide) (Kf_maximalReal_finrank g).le)
     have := @exists_fiber_card_ge;
     exact Exists.elim ( this F₁ ( fun A => QuotientGroup.mk ( ν A ) ) ) fun y hy => ⟨ y, hy.trans ( Nat.mul_le_mul_left _ h_finite ) ⟩;
   refine' ⟨ _, _, hy, _ ⟩;

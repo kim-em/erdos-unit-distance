@@ -20,61 +20,6 @@ open NumberField IsCMField
 
 namespace Erdos
 
-
-
-lemma exists_transversal_family {R : Type*} [CommRing R] [IsDedekindDomain R]
-    (σ : R ≃+* R) (S : Finset (Ideal R))
-    (hprime : ∀ p ∈ S, p.IsPrime) (hne : ∀ p ∈ S, p ≠ ⊥)
-    (hinv : ∀ p ∈ S, Ideal.map σ p ∈ S)
-    (hinvol : ∀ p ∈ S, Ideal.map σ (Ideal.map σ p) = p)
-    (hfree : ∀ p ∈ S, Ideal.map σ p ≠ p) :
-    ∃ G : Finset (Ideal R), 2 ^ (S.card / 2) ≤ G.card ∧
-      ∀ A ∈ G, A * Ideal.map σ A = ∏ p ∈ S, p := by
-  classical
-  -- Bundle each prime of `S` as a height-one spectrum element and delegate to TauCeti.
-  set f : {p // p ∈ S} → IsDedekindDomain.HeightOneSpectrum R :=
-    fun x => ⟨x.1, hprime x.1 x.2, hne x.1 x.2⟩ with hf
-  have hfinj : Function.Injective f := fun x y h =>
-    Subtype.ext (congrArg IsDedekindDomain.HeightOneSpectrum.asIdeal h)
-  set S' : Finset (IsDedekindDomain.HeightOneSpectrum R) := S.attach.image f with hS'
-  have hEqIdeal : ∀ q : IsDedekindDomain.HeightOneSpectrum R,
-      (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q).asIdeal
-        = Ideal.map σ q.asIdeal := by
-    intro q; ext x; simp [IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv]
-  have hmem : ∀ q : IsDedekindDomain.HeightOneSpectrum R, q ∈ S' ↔ q.asIdeal ∈ S := by
-    intro q
-    rw [hS', Finset.mem_image]
-    constructor
-    · rintro ⟨x, -, rfl⟩; exact x.2
-    · intro hq; exact ⟨⟨q.asIdeal, hq⟩, Finset.mem_attach _ _,
-        IsDedekindDomain.HeightOneSpectrum.ext rfl⟩
-  have hcard : S'.card = S.card := by
-    rw [hS', Finset.card_image_of_injective _ hfinj, Finset.card_attach]
-  have hprod : ∏ q ∈ S', q.asIdeal = ∏ p ∈ S, p := by
-    rw [hS', Finset.prod_image (fun x _ y _ h => hfinj h)]
-    exact Finset.prod_attach S (fun p => p)
-  have hinv' : ∀ q ∈ S', IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q ∈ S' := by
-    intro q hq
-    rw [hmem, hEqIdeal]
-    exact hinv q.asIdeal ((hmem q).mp hq)
-  have hinvol' : ∀ q ∈ S',
-      IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ
-        (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q) = q := by
-    intro q hq
-    apply IsDedekindDomain.HeightOneSpectrum.ext
-    rw [hEqIdeal, hEqIdeal]
-    exact hinvol q.asIdeal ((hmem q).mp hq)
-  have hfree' : ∀ q ∈ S', IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q ≠ q := by
-    intro q hq h
-    exact hfree q.asIdeal ((hmem q).mp hq)
-      (hEqIdeal q ▸ congrArg IsDedekindDomain.HeightOneSpectrum.asIdeal h)
-  obtain ⟨G, hGcard, hGprod⟩ :=
-    TauCeti.DedekindDomain.exists_transversal_family σ S' hinv' hinvol' hfree'
-  refine ⟨G, ?_, fun A hA => ?_⟩
-  · rwa [hcard] at hGcard
-  · rw [hGprod A hA, hprod]
-
-
 /-
 **Real multiquadratic independence.** For a finite set `s` of primes and a squarefree
 `d > 1` none of whose prime factors lie in `s`, `√d` is not in the real multiquadratic field
@@ -650,8 +595,48 @@ theorem exists_ideal_family (g t : ℕ) (hg : 1 ≤ g) :
     obtain ⟨i, hi, hPi⟩ := Finset.mem_biUnion.mp hP
     rw [hσ_eq]
     exact Kf_conj_primesOver_ne g (p1 i) (p1_spec i).1 (p1_spec i).2 P (hmem hPi)
-  obtain ⟨G, hGcard, hGprod⟩ :=
-    exists_transversal_family σ S hSprime hSne hSinv hSinvol hSfree
+  -- Bundle the primes of `S` as height-one spectrum elements and invoke TauCeti's
+  -- conjugate-transversal construction directly.
+  obtain ⟨G, hGcard, hGprod⟩ : ∃ G : Finset (Ideal (𝓞 (Kf g))),
+      2 ^ (S.card / 2) ≤ G.card ∧
+        ∀ A ∈ G, A * Ideal.map σ A = ∏ p ∈ S, p := by
+    set f : {p // p ∈ S} → IsDedekindDomain.HeightOneSpectrum (𝓞 (Kf g)) :=
+      fun x => ⟨x.1, hSprime x.1 x.2, hSne x.1 x.2⟩ with hf
+    have hfinj : Function.Injective f := fun x y h =>
+      Subtype.ext (congrArg IsDedekindDomain.HeightOneSpectrum.asIdeal h)
+    set S' : Finset (IsDedekindDomain.HeightOneSpectrum (𝓞 (Kf g))) :=
+      S.attach.image f with hS'
+    have hEqIdeal : ∀ q : IsDedekindDomain.HeightOneSpectrum (𝓞 (Kf g)),
+        (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q).asIdeal
+          = Ideal.map σ q.asIdeal := by
+      intro q; ext x; simp [IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv]
+    have hmem : ∀ q, q ∈ S' ↔ q.asIdeal ∈ S := by
+      intro q
+      rw [hS', Finset.mem_image]
+      constructor
+      · rintro ⟨x, -, rfl⟩; exact x.2
+      · intro hq; exact ⟨⟨q.asIdeal, hq⟩, Finset.mem_attach _ _,
+          IsDedekindDomain.HeightOneSpectrum.ext rfl⟩
+    have hcard : S'.card = S.card := by
+      rw [hS', Finset.card_image_of_injective _ hfinj, Finset.card_attach]
+    have hprod : ∏ q ∈ S', q.asIdeal = ∏ p ∈ S, p := by
+      rw [hS', Finset.prod_image (fun x _ y _ h => hfinj h)]
+      exact Finset.prod_attach S (fun p => p)
+    have hinv' : ∀ q ∈ S', IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q ∈ S' := by
+      intro q hq; rw [hmem, hEqIdeal]; exact hSinv q.asIdeal ((hmem q).mp hq)
+    have hinvol' : ∀ q ∈ S',
+        IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ
+          (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q) = q := by
+      intro q hq
+      apply IsDedekindDomain.HeightOneSpectrum.ext
+      rw [hEqIdeal, hEqIdeal]; exact hSinvol q.asIdeal ((hmem q).mp hq)
+    have hfree' : ∀ q ∈ S', IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q ≠ q := by
+      intro q hq h
+      exact hSfree q.asIdeal ((hmem q).mp hq)
+        (hEqIdeal q ▸ congrArg IsDedekindDomain.HeightOneSpectrum.asIdeal h)
+    obtain ⟨G, hGcard, hGprod⟩ :=
+      TauCeti.DedekindDomain.exists_transversal_family σ S' hinv' hinvol' hfree'
+    exact ⟨G, hcard ▸ hGcard, fun A hA => by rw [hGprod A hA, hprod]⟩
   refine ⟨G, ?_, ?_⟩
   · have hScard : t * 2 ^ g ≤ S.card := by
       rw [hSdef, Finset.card_biUnion hdisj]

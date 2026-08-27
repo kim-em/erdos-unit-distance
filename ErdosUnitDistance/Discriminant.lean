@@ -4,8 +4,8 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import ErdosUnitDistance.MultiquadraticField
-import TauCeti.NumberTheory.EffectiveBounds.ClassNumber
-import TauCeti.NumberTheory.EffectiveBounds.Discriminant
+import TauCeti.NumberTheory.EffectiveBounds.ClassNumber.Basic
+import TauCeti.NumberTheory.EffectiveBounds.Discriminant.Basic
 
 /-!
 # The discriminant of the multiquadratic field

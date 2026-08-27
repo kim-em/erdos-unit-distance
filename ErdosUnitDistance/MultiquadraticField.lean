@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import ErdosUnitDistance.PrimesMod4
-import TauCeti.NumberTheory.Multiquadratic.SquareClass
+import TauCeti.NumberTheory.Multiquadratic.SquareClass.Basic
 import TauCeti.FieldTheory.IntermediateField.Quadratic
 
 /-!

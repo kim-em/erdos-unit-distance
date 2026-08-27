@@ -206,7 +206,7 @@ theorem Kf_ramificationIdxIn_eq_one (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p 
   haveI : PerfectField (ℤ ⧸ Ideal.span {(p : ℤ)}) := PerfectField.ofFinite
   haveI : Algebra.IsSeparable (ℤ ⧸ Ideal.span {(p : ℤ)}) (𝓞 (Kf g) ⧸ P) := inferInstance
   rw [← Ideal.card_inertia_eq_ramificationIdxIn (G := Kf g ≃ₐ[ℚ] Kf g)
-        (Ideal.span {(p : ℤ)}) hp0 P, Kf_inertia_eq_bot g p hp hp4 P, Subgroup.card_bot]
+        (Ideal.span {(p : ℤ)}) P, Kf_inertia_eq_bot g p hp hp4 P, Subgroup.card_bot]
 
 
 
@@ -249,7 +249,7 @@ theorem Kf_inertiaDegIn_le_two (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p % 4 =
   haveI : PerfectField (ℤ ⧸ Ideal.span {(p : ℤ)}) := PerfectField.ofFinite
   haveI : Algebra.IsSeparable (ℤ ⧸ Ideal.span {(p : ℤ)}) (𝓞 (Kf g) ⧸ P) := inferInstance
   -- the decomposition group has cardinality e·f = f
-  have hcard := Ideal.card_stabilizer_eq (G := Kf g ≃ₐ[ℚ] Kf g) (Ideal.span {(p : ℤ)}) hp0 P
+  have hcard := Ideal.card_stabilizer_eq (G := Kf g ≃ₐ[ℚ] Kf g) (Ideal.span {(p : ℤ)}) P
   rw [Kf_ramificationIdxIn_eq_one g p hp hp4, one_mul] at hcard
   rw [← hcard]
   -- the stabilizer is isomorphic to the (cyclic) residue Galois group
@@ -298,7 +298,7 @@ theorem Kf_card_primesOver_ge (g : ℕ) (p : ℕ) (hp : p.Prime) (hp4 : p % 4 = 
   obtain ⟨hpz, hp0, hpprime, hpmax, hp4dvd⟩ := p_prime_facts hp hp4
   haveI : (Ideal.span {(p : ℤ)}).IsMaximal := hpmax
   have hfund := Ideal.ncard_primesOver_mul_ramificationIdxIn_mul_inertiaDegIn
-    (p := Ideal.span {(p : ℤ)}) hp0 (𝓞 (Kf g)) (Kf g ≃ₐ[ℚ] Kf g)
+    (p := Ideal.span {(p : ℤ)}) (𝓞 (Kf g)) (Kf g ≃ₐ[ℚ] Kf g)
   have hG : Nat.card (Kf g ≃ₐ[ℚ] Kf g) = 2 ^ (g + 1) := by
     simpa [Nat.card_eq_fintype_card, Kf_finrank] using IsGalois.card_aut_eq_finrank ℚ (Kf g)
   have he := Kf_ramificationIdxIn_eq_one g p hp hp4
@@ -461,7 +461,7 @@ theorem span_p1_eq_prod (g i : ℕ) :
     haveI := hPp
     haveI := hPlies
     have hPne : P ≠ ⊥ := Ideal.ne_bot_of_liesOver_of_ne_bot hp0 P
-    rw [← Ideal.IsDedekindDomain.ramificationIdx_eq_normalizedFactors_count hIne hPp hPne]
+    rw [← Ideal.IsDedekindDomain.ramificationIdx_eq_normalizedFactors_count (Ideal.span {(p1 i : ℤ)}) P hIne]
     rw [← Ideal.ramificationIdxIn_eq_ramificationIdx (Ideal.span {(p1 i : ℤ)}) P
       (Kf g ≃ₐ[ℚ] Kf g)]
     exact Kf_ramificationIdxIn_eq_one g (p1 i) (p1_spec i).1 (p1_spec i).2

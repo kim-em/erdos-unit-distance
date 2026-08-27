@@ -118,7 +118,7 @@ private theorem exists_params (C : ℝ) (hC : 0 < C) (c₀ c₁ : ℝ)
             suffices h_change_var : Filter.Tendsto (fun y : ℝ => y * Real.log (1 / y)) (Filter.map (fun x => 1 / x) Filter.atTop) (nhds 0) by
               exact h_change_var.comp ( Filter.map_mono tendsto_natCast_atTop_atTop ) |> fun h => h.congr ( by intros; simp +decide ; ring_nf );
             norm_num;
-            exact tendsto_nhdsWithin_of_tendsto_nhds ( by simpa using Real.continuous_mul_log.neg.tendsto 0 );
+            exact tendsto_nhdsWithin_of_tendsto_nhds ( by simpa using (Real.continuous_mul_log.tendsto 0).neg );
           -- We can use the fact that $\frac{\log(g+2)}{g} = \frac{\log(g)}{g} + \frac{\log(1 + 2/g)}{g}$.
           have h_log_div_g_split : Filter.Tendsto (fun g : ℕ => (Real.log (g : ℝ) / (g : ℝ)) + (Real.log (1 + 2 / (g : ℝ)) / (g : ℝ))) Filter.atTop (nhds 0) := by
             simpa [div_eq_mul_inv] using h_log_div_g.add ( Filter.Tendsto.mul ( Filter.Tendsto.log ( tendsto_const_nhds.add ( tendsto_const_nhds.mul tendsto_inv_atTop_nhds_zero_nat ) ) ( by norm_num ) ) tendsto_inv_atTop_nhds_zero_nat );

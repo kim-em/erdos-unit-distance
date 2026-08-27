@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 -/
 
 import ErdosUnitDistance.IdealFamily
-import TauCeti.NumberTheory.EffectiveBounds.UnitSquares
+import TauCeti.NumberTheory.EffectiveBounds.UnitSquares.Basic
 
 /-!
 # The norm fibre

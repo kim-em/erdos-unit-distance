@@ -214,7 +214,7 @@ theorem ncard_box_two_le_doubling (r : ι → ℝ) (hr : ∀ i, 0 < r i)
     intro x hx
     obtain ⟨y, hy, rfl⟩ := Finset.mem_image.mp hx
     simp [Fintype.piFinset];
-    refine' ⟨ fun i _ => ( ⌊ ( y i |> Complex.re ) / ( 2 * r i / 3 ) ⌋, ⌊ ( y i |> Complex.im ) / ( 2 * r i / 3 ) ⌋ ), _, _ ⟩ <;> simp +decide;
+    refine' ⟨ fun i _ => ( ⌊ ( y i |> Complex.re ) / ( 2 * r i / 3 ) ⌋, ⌊ ( y i |> Complex.im ) / ( 2 * r i / 3 ) ⌋ ), _, _ ⟩ <;> first | rfl | simp +decide;
     intro i
     have h_bound : |(y i).re| ≤ 2 * r i ∧ |(y i).im| ≤ 2 * r i := by
       exact ⟨ le_trans ( Complex.abs_re_le_norm _ ) ( hsA.symm.subset hy |>.2 i ), le_trans ( Complex.abs_im_le_norm _ ) ( hsA.symm.subset hy |>.2 i ) ⟩;

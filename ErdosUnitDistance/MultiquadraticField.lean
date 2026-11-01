@@ -37,7 +37,7 @@ theorem Kf_finiteDimensional (g : ℕ) : FiniteDimensional ℚ (Kf g) := by
   refine' IntermediateField.finiteDimensional_adjoin _
   simp +zetaDelta at *
   refine ⟨?_, ?_⟩
-  · exact Complex.isIntegral_rat_I
+  · exact Complex.isIntegral_I ℚ
   · intro a ha
     refine ⟨Polynomial.X ^ 2 - Polynomial.C (q3 a : ℚ), ?_, ?_⟩
     · exact Polynomial.monic_X_pow_sub_C _ two_ne_zero
@@ -183,6 +183,7 @@ private theorem finrank_sup_adjoin_simple_eq_mul_two
         = Module.finrank ℚ (L.restrictScalars ℚ) := by rw [hL]
     _ = Module.finrank ℚ L := e.finrank_eq
     _ = Module.finrank ℚ K * Module.finrank K L := by
+      have : Module.Free K L := Module.Free.of_divisionRing K L
       rw [Module.finrank_mul_finrank]
     _ = Module.finrank ℚ K * 2 := by rw [hfinL]
 
@@ -192,10 +193,10 @@ theorem sqrt_q3_notMem_tower (n : ℕ) :
     (Real.sqrt (q3 n) : ℝ) ∉ q3Tower n := by
   intro hmem
   obtain ⟨T, s, hT, heq⟩ :=
-    squareClass_of_sqrt_mem (fun j => (q3 j : ℚ))
-      (fun j => by
+    squareClass_of_sqrt_mem (fun j => (q3 j : ℚ)) (n := n)
+      (fun j _ => by
         show (0 : ℚ) ≤ (q3 j : ℚ)
-        exact_mod_cast (q3_spec j).1.pos.le) n (q3 n)
+        exact_mod_cast (q3_spec j).1.pos.le) (r := q3 n)
       (by exact_mod_cast (q3_spec n).1.pos.le) hmem
   exact q3_not_squareClass n T hT s heq
 
@@ -443,7 +444,7 @@ theorem Kf_aut_involutive (g : ℕ) (σ : Kf g ≃ₐ[ℚ] Kf g) : σ * σ = 1 :
     rcases h2 with h | h
     · rw [h, h]
     · rw [h, map_neg, h, neg_neg]
-  exact AlgEquiv.coe_algHom_injective hext
+  exact AlgEquiv.coe_toAlgHom_injective hext
 
 /-- [medium] `K_g/ℚ` is an abelian Galois extension.  Sketch: it is the
 splitting field of `(X² + 1) ∏_j (X² - q3 j)` (each quadratic generator

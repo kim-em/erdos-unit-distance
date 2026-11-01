@@ -125,8 +125,7 @@ theorem inertia_fixes_gen (g : ℕ) (p : ℕ)
   -- Since $σ • xt = -xt$, we have $σ • xt - xt = -2 * xt$.
   have h_diff : σ • xt - xt = -2 * xt := by
     ext; simp [h_neg, hxt];
-    erw [ show ( algebraMap ( 𝓞 ( Kf g ) ) ( Kf g ) ) ( σ • xt ) = σ ( algebraMap ( 𝓞 ( Kf g ) ) ( Kf g ) xt ) from rfl ] ; norm_num [ h_neg, hxt ] ; ring;
-    norm_cast;
+    rw [map_ofNat]; push_cast; ring_nf; rfl
   -- Since $-2 * xt \in P$, we have $4 * xt^2 \in P$.
   have h_four_xt_sq : 4 * xt^2 ∈ P := by
     have h_four_xt_sq : (-2 * xt) * (-2 * xt) ∈ P := by
@@ -609,7 +608,9 @@ theorem exists_ideal_family (g t : ℕ) (hg : 1 ≤ g) :
     have hEqIdeal : ∀ q : IsDedekindDomain.HeightOneSpectrum (𝓞 (Kf g)),
         (IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv σ q).asIdeal
           = Ideal.map σ q.asIdeal := by
-      intro q; ext x; simp [IsDedekindDomain.HeightOneSpectrum.equivOfRingEquiv]
+      intro q; ext x
+      change σ.symm x ∈ q.asIdeal ↔ _
+      exact Ideal.symm_apply_mem_of_equiv_iff
     have hmem : ∀ q, q ∈ S' ↔ q.asIdeal ∈ S := by
       intro q
       rw [hS', Finset.mem_image]

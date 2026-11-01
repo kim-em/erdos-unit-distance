@@ -199,14 +199,14 @@ Mathlib as a special case of Dirichlet
 argument. -/
 theorem infinite_setOf_q3 : {n | n.Prime ∧ n % 4 = 3}.Infinite := by
   have h : {p : ℕ | p.Prime ∧ p ≡ 3 [MOD 4]}.Infinite :=
-    Nat.infinite_setOf_prime_and_modEq (by norm_num) (by decide)
+    Nat.infinite_setOfPred_prime_and_modEq (by norm_num) (by decide)
   convert! h using 2 with n
 
 
 /-- [easy] There are infinitely many primes `≡ 1 mod 4`.
 (Proved by Aristotle, 2026-06-11.) -/
 theorem infinite_setOf_p1 : {n | n.Prime ∧ n % 4 = 1}.Infinite :=
-  Nat.infinite_setOf_prime_modEq_one <| by decide
+  Nat.infinite_setOfPred_prime_modEq_one <| by decide
 
 /-- [easy given infinitude] `q3 j` is prime and `≡ 3 mod 4`
 (`Nat.nth_mem_of_infinite`). -/
@@ -226,7 +226,7 @@ theorem p1_strictMono : StrictMono p1 :=
 /-- [easy] `m t ≥ 2^t` (each prime factor is `≥ 5`). -/
 theorem m_ge (t : ℕ) : 2 ^ t ≤ m t := by
   calc 2 ^ t = ∏ _i ∈ Finset.range t, 2 := by simp
-  _ ≤ m t := Finset.prod_le_prod' fun i _ => (p1_spec i).1.two_le
+  _ ≤ m t := Finset.prod_le_prod fun i _ => (p1_spec i).1.two_le
 
 /-- [medium given `p1_poly_bound`] The logarithm of `m t` grows like
 `t log t` up to constants: there is `c₁ ≥ 1` with

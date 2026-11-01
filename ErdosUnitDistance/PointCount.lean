@@ -162,7 +162,7 @@ theorem mink_sep_aux (g t : ℕ) (b : Ideal (𝓞 (Kf g))) (μ : Kf g) (y : 𝓞
     have h_contradiction : (∏ w : InfinitePlace (Kf g), (w (algebraMap (𝓞 (Kf g)) (Kf g) y)) ^ 2) ≤ (ρ ^ 2) ^ (Fintype.card (InfinitePlace (Kf g))) * (∏ w : InfinitePlace (Kf g), (w μ)) := by
       have h_prod_le : ∀ w : InfinitePlace (Kf g), (w (algebraMap (𝓞 (Kf g)) (Kf g) y)) ^ 2 ≤ (ρ * Real.sqrt (w μ)) ^ 2 := by
         exact fun w => by simpa only [ ← norm_mink_apply ] using pow_le_pow_left₀ ( by positivity ) ( hkey w ) 2;
-      convert! Finset.prod_le_prod ( fun _ _ => sq_nonneg _ ) fun w _ => h_prod_le w using 1 ; norm_num [ mul_pow, Finset.prod_mul_distrib ];
+      convert! Finset.prod_le_prod₀ ( fun _ _ => sq_nonneg _ ) fun w _ => h_prod_le w using 1 ; norm_num [ mul_pow, Finset.prod_mul_distrib ];
     convert! le_trans ( absNorm_le_prod_places g b y hy hy0 ) h_contradiction using 1 ; ring;
   by_cases hb : Ideal.absNorm b = 0 <;> simp_all +decide;
   · rw [ Ideal.absNorm_eq_zero_iff ] at hb ; aesop;

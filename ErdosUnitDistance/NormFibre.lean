@@ -120,28 +120,12 @@ The quotient of the unit group by squares is finite.
 -/
 theorem units_sq_quot_finite (F : Type) [Field F] [NumberField F] :
     Finite ((𝓞 F)ˣ ⧸ (MonoidHom.range (powMonoidHom 2 : (𝓞 F)ˣ →* (𝓞 F)ˣ))) := by
-  have h_fg : AddGroup.FG (Additive ((𝓞 F)ˣ ⧸ (powMonoidHom 2 : (𝓞 F)ˣ →* (𝓞 F)ˣ).range)) := by
-    have h_finite_gen : Monoid.FG ((𝓞 F)ˣ) := by
-      grind +suggestions;
-    convert AddGroup.fg_iff_addMonoid_fg.mpr _;
-    obtain ⟨ S, hS ⟩ := h_finite_gen;
-    refine' ⟨ S.image ( fun x => QuotientGroup.mk x ), _ ⟩;
-    simp_all +decide [ SetLike.ext_iff, AddSubmonoid.mem_closure ];
-    intro a S_1 hS_1; obtain ⟨ x, rfl ⟩ := QuotientGroup.mk_surjective a; simp_all +decide [ Set.subset_def, Submonoid.mem_closure ] ;
-    specialize hS x ( Submonoid.comap ( QuotientGroup.mk' ( powMonoidHom 2 |> MonoidHom.range ) ) ( AddSubmonoid.toSubmonoid S_1 ) ) ; aesop;
-  have h_add_group : ∀ (G : Type) [AddCommGroup G] [AddGroup.FG G], (∀ g : G, 2 • g = 0) → Finite G := by
-    intros G _ _ hG
-    have h_vector_space : Module (ZMod 2) G := AddCommGroup.zmodModule hG
-    have h_finite_dim : FiniteDimensional (ZMod 2) G := by
-      have h_fg : Module.Finite (ZMod 2) G := by
-        obtain ⟨ s, hs ⟩ := ‹AddGroup.FG G›;
-        use s;
-        simp_all +decide [ SetLike.ext_iff, AddSubgroup.mem_closure ];
-        intro x; specialize hs x ( Submodule.toAddSubgroup ( Submodule.span ( ZMod 2 ) ( s : Set G ) ) ) ; simp_all +decide [ Set.subset_def, Submodule.mem_span ] ;
-      lia;
-    exact Finite.of_equiv _ ( ( Module.finBasis ( ZMod 2 ) G ).equivFun.symm.toEquiv );
-  convert! h_add_group ( Additive ( ( 𝓞 F ) ˣ ⧸ ( powMonoidHom 2 : ( 𝓞 F ) ˣ →* ( 𝓞 F ) ˣ ).range ) ) _;
-  rintro ⟨ a ⟩ ; exact QuotientGroup.eq.mpr ( by aesop ) ;
+  have : Group.FG (𝓞 F)ˣ := Group.fg_iff_monoid_fg.mpr inferInstance
+  refine CommGroup.finite_of_fg_isMulTorsion _ fun a => ?_
+  obtain ⟨x, rfl⟩ := QuotientGroup.mk_surjective a
+  refine isOfFinOrder_iff_pow_eq_one.mpr ⟨2, two_pos, ?_⟩
+  rw [← QuotientGroup.mk_pow, QuotientGroup.eq_one_iff]
+  exact ⟨x, rfl⟩
 
 /-
 Pigeonhole over square-classes of real units.
@@ -163,7 +147,7 @@ theorem units_square_pigeonhole (g : ℕ) {α : Type*} (F₁ : Finset α)
         rw [MonoidHom.mem_range, Subgroup.mem_square]
         constructor <;> rintro ⟨h, rfl⟩ <;> exact ⟨h, by rw [powMonoidHom_apply, sq]⟩
       rw [← Nat.card_eq_fintype_card, ← Subgroup.index_eq_card, hsq]
-      exact (TauCeti.NumberField.units_sq_index_le (↥(maximalRealSubfield (Kf g)))).trans
+      exact (NumberField.units_sq_index_le (↥(maximalRealSubfield (Kf g)))).trans
         (pow_le_pow_right₀ (by decide) (Kf_maximalReal_finrank g).le)
     have := @exists_fiber_card_ge;
     exact Exists.elim ( this F₁ ( fun A => QuotientGroup.mk ( ν A ) ) ) fun y hy => ⟨ y, hy.trans ( Nat.mul_le_mul_left _ h_finite ) ⟩;
@@ -370,7 +354,7 @@ theorem arithmetic_construction (g t : ℕ) (hg : 1 ≤ g) (ht : 1 ≤ t) :
     intro A hA;
     have hzfA_in_b : Ideal.span {zf A} ≤ b := by
       rw [ hzf A hA |>.1, hy A ( hF₂ hA ) |>.2 ];
-      exact Ideal.mul_le_left
+      exact Ideal.mul_le_right
     exact hzfA_in_b <| Ideal.mem_span_singleton_self _;
   · simp +zetaDelta at *;
     intro A hA w; rw [ ← hzf A hA |>.2 ] ; rw [ ← place_mul_conj ] ;

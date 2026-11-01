@@ -107,7 +107,7 @@ theorem mqGen_isIntegral (k : Option (Fin g)) : IsIntegral ℤ (mqGen g k) := by
   · refine' ⟨ Polynomial.X ^ 2 + 1, _, _ ⟩;
     · erw [ Polynomial.Monic, Polynomial.leadingCoeff_X_pow_add_C ] ; norm_num;
     · simp +decide [ show ( mqGen g none : Kf g ) = ⟨ Complex.I, _ ⟩ by rfl ];
-      exact Subtype.ext ( neg_add_cancel _ );
+      exact Subtype.ext ( by simp );
   · refine' ⟨ Polynomial.X ^ 2 - Polynomial.C ( q3 k : ℤ ), _, _ ⟩;
     · erw [ Polynomial.Monic, Polynomial.leadingCoeff_X_pow_sub_C ] ; norm_num;
     · simp +decide [ sub_eq_zero, mqGen_sq ];
@@ -282,7 +282,7 @@ theorem mqRS_abs_le (S : Finset (Option (Fin g))) :
   -- Since `S ⊆ Finset.univ` and every factor is `≥ 1`, by `Finset.prod_le_prod_of_subset_of_one_le'` we get `∏ k ∈ S, |mqSq g k| ≤ ∏ k ∈ Finset.univ, |mqSq g k|`.
   have h_prod_le_prod_univ : ∏ k ∈ S, |mqSq g k| ≤ ∏ k ∈ Finset.univ, |mqSq g k| := by
     rw [ ← Finset.prod_sdiff ( Finset.subset_univ S ) ];
-    exact le_mul_of_one_le_left ( Finset.prod_nonneg fun _ _ => abs_nonneg _ ) ( le_trans ( by norm_num ) ( Finset.prod_le_prod ( fun _ _ => by norm_num ) fun _ _ => h_abs_ge_one _ ) );
+    exact le_mul_of_one_le_left ( Finset.prod_nonneg fun _ _ => abs_nonneg _ ) ( le_trans ( by norm_num ) ( Finset.prod_le_prod₀ ( fun _ _ => by norm_num ) fun _ _ => h_abs_ge_one _ ) );
   simp_all +decide;
   exact h_prod_le_prod_univ.trans ( by rw [ Finset.prod_range ] ; simp +decide [ mqSq ] )
 
@@ -291,7 +291,7 @@ theorem abs_discr_mqB_le :
       ≤ (4 ^ (g + 1) * ∏ j ∈ Finset.range g, (q3 j : ℚ)) ^ 2 ^ (g + 1) := by
   rw [ Algebra.discr_def, traceMatrix_mqB ];
   norm_num [ Finset.abs_prod, abs_mul ];
-  refine' le_trans ( Finset.prod_le_prod _ fun x _ => mul_le_mul_of_nonneg_left ( mqRS_abs_le g x ) ( Nat.cast_nonneg _ ) ) _ <;> norm_num [ mq_Kf_finrank_eq ];
+  refine' le_trans ( Finset.prod_le_prod₀ _ fun x _ => mul_le_mul_of_nonneg_left ( mqRS_abs_le g x ) ( Nat.cast_nonneg _ ) ) _ <;> norm_num [ mq_Kf_finrank_eq ];
   gcongr;
   decide +revert
 
@@ -321,7 +321,7 @@ theorem Kf_discr_le (g : ℕ) :
     rw [show bas i = mqB g i from congrFun hbas i]
     exact mqB_isIntegral g i
   have h1 : |(NumberField.discr (Kf g) : ℚ)| ≤ |Algebra.discr ℚ (mqB g)| := by
-    have h := TauCeti.NumberField.abs_discr_le_of_basis_isIntegral bas hint
+    have h := NumberField.abs_discr_le_of_basis_isIntegral bas hint
     rwa [hbas] at h
   have h2 := abs_discr_mqB_le g
   have h3 : |(NumberField.discr (Kf g) : ℚ)| ≤
@@ -408,7 +408,7 @@ theorem log_classNumber_le_log_discr : ∃ a b : ℝ, 0 ≤ a ∧
   · intro g
     have h1 : Real.log (NumberField.classNumber (Kf g)) ≤ Real.log (|NumberField.discr (Kf g)|) + Module.finrank ℚ (Kf g) * Real.log 4 := by
       have h1 : (NumberField.classNumber (Kf g) : ℝ) ≤ |(NumberField.discr (Kf g) : ℝ)| * 4 ^ Module.finrank ℚ (Kf g) := by
-        convert TauCeti.NumberField.classNumber_le_bound ( Kf g ) using 1;
+        convert NumberField.classNumber_le_bound ( Kf g ) using 1;
       convert Real.log_le_log ( Nat.cast_pos.mpr <| NumberField.classNumber_pos _ ) h1 using 1;
       rw [ Real.log_mul ( by exact ne_of_gt <| abs_pos.mpr <| mod_cast NumberField.discr_ne_zero _ ) ( by positivity ), Real.log_pow ];
     have h2 : (4 / 9 : ℝ) * (3 * Real.pi / 4) ^ Module.finrank ℚ (Kf g) ≤ |NumberField.discr (Kf g)| := by
